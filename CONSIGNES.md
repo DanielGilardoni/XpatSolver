@@ -62,7 +62,7 @@ formalité : il sera pris en compte dans l'évaluation.
    Documentez ensuite de façon précise la manière dont votre
    projet doit être compilé (normalement via dune) et exécuté (en donnant
    les options acceptées par votre programme). Pour ce projet, aucune
-   bibliothèque externe n'est autorisé a priori. Nous contacter si
+   bibliothèque externe n'est autorisée a priori. Nous contacter si
    cela vous semble problématique.
 
 4. (Découpage modulaire)
