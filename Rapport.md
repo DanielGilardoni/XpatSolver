@@ -5,7 +5,7 @@
 | Nom       |  Prénom | Identifiant | Numéro d'étudiant |  
 | ----------|---------|-------------|-------------------|
 | Abignoli  | Léopold |  @abignoli  |      22004535     |  
-| Gilardoni | Daniel  |  @........  |      2200....     |
+| Gilardoni | Daniel  |  @gilardon  |      22008366     |
 
 ## Fonctionnalités
    Donnez une description précise des fonctionnalités implémentées
