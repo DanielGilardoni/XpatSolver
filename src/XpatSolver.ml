@@ -41,6 +41,7 @@ let treat_game conf =
     permut;
   print_newline ();
   print_string "C'est tout pour l'instant. TODO: continuer...\n";
+  Game.initGame 4 7 permut;
   exit 0
 
 let main () =

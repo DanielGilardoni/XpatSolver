@@ -5,29 +5,22 @@ type gameStruct = {
 }
 
 let rec add l cards i = 
-  if i > 0 then
+  if i > 0 then 
     match cards with
-    | a :: subCards -> a :: l in
-    add l subCards (i-1)
+    | [] -> (l, cards)
+    | a :: subCards -> let newList = a :: l in add newList subCards (i-1)
   else
     (l, cards)
 
-let rec add_column col cards i =
-  if i > 0 then
-    let (v, sc) = add [] cards 7 in
-    let newCol = set col i v in
-      add_column newCol sc (i-1)
-  else
-    (col, cards)
-
+let rec add_column columns cards cardsPerCol incr =
+  match cardsPerCol with
+  | [] -> (columns, cards)
+  | nbCard :: subCardsPerCol -> 
+    let (col, subCards) = add [] cards nbCard in
+    let newCol = set columns incr col in
+      add_column newCol subCards subCardsPerCol (incr + 1)
+(*
 let initGame nbReg nbCol cards =
   let reg = FArray.make nbReg [] in
   let col = FArray.make nbCol [] in
-
-    in
-
-  in let (col, cards) = add_column col cards nbCol
-  in add_column reg cards nbReg
-in {registers=reg; columns=col} 
-
-let initFreeCell
+*)
