@@ -1,15 +1,11 @@
 (* Fonctions pour résoudre la version de FreeCell *)
 
+type game = Freecell | Seahaven | Midnight | Baker
 type gameStruct
 
-
-(*val initGame : int -> int -> gameStruct*)
-
-val rec add : int list -> int list -> int:
-
+val add : int list -> int list -> int -> (int list * int list)
+val add_columns : int list FArray.t -> int list -> int list -> int -> (int list FArray.t * int list)
 (* Prend la liste de toutes les cartes puis crée
    un gameStruct avec les colonnes remplies *)
-val initFreeCell : int list -> gameStruct
-val initSeahaven : int list -> gameStruct
-val initMidOil : int list -> gameStruct
-val initBDozen : int list -> gameStruct
+val initGame : game -> int list -> gameStruct
+val initGameAux : game -> int -> int -> int list -> int list -> gameStruct

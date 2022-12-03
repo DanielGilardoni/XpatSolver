@@ -1,20 +1,18 @@
 
 open XpatLib
 
-type game = Freecell | Seahaven | Midnight | Baker
-
 type mode =
   | Check of string (* filename of a solution file to check *)
   | Search of string (* filename where to write the solution *)
 
-type config = { mutable game : game; mutable seed: int; mutable mode: mode }
+type config = { mutable game : Game.game; mutable seed: int; mutable mode: mode }
 let config = { game = Freecell; seed = 1; mode = Search "" }
 
 let getgame = function
-  | "FreeCell"|"fc" -> Freecell
-  | "Seahaven"|"st" -> Seahaven
-  | "MidnightOil"|"mo" -> Midnight
-  | "BakersDozen"|"bd" -> Baker
+  | "FreeCell"|"fc" -> Game.Freecell
+  | "Seahaven"|"st" -> Game.Seahaven
+  | "MidnightOil"|"mo" -> Game.Midnight
+  | "BakersDozen"|"bd" -> Game.Baker
   | _ -> raise Not_found
 
 let split_on_dot name =
@@ -41,7 +39,7 @@ let treat_game conf =
     permut;
   print_newline ();
   print_string "C'est tout pour l'instant. TODO: continuer...\n";
-  Game.initGame 4 7 permut;
+  let game = Game.initGame conf.game permut in
   exit 0
 
 let main () =
