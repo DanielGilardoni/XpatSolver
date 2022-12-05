@@ -1,18 +1,19 @@
 
 open XpatLib
+open XpatLib.Game
 
 type mode =
   | Check of string (* filename of a solution file to check *)
   | Search of string (* filename where to write the solution *)
 
-type config = { mutable game : Game.game; mutable seed: int; mutable mode: mode }
+type config = { mutable game : game; mutable seed: int; mutable mode: mode }
 let config = { game = Freecell; seed = 1; mode = Search "" }
 
 let getgame = function
-  | "FreeCell"|"fc" -> Game.Freecell
-  | "Seahaven"|"st" -> Game.Seahaven
-  | "MidnightOil"|"mo" -> Game.Midnight
-  | "BakersDozen"|"bd" -> Game.Baker
+  | "FreeCell"|"fc" -> Freecell
+  | "Seahaven"|"st" -> Seahaven
+  | "MidnightOil"|"mo" -> Midnight
+  | "BakersDozen"|"bd" -> Baker
   | _ -> raise Not_found
 
 let split_on_dot name =

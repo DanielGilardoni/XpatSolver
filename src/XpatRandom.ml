@@ -12,7 +12,7 @@ let randmax = 1_000_000_000
 
 (* Converting an integer n in [0..randmax[ to an integer in [0..limit[ *)
 let reduce n limit =
-  Int.(of_float (to_float n /. to_float randmax *. to_float limit))
+   Int.(of_float (to_float n /. to_float randmax *. to_float limit))
 
 
 (** DESCRIPTION DE L'ALGORITHME DE GENERATION DES PERMUTATIONS
@@ -66,6 +66,28 @@ e) La fonction de tirage vue précédemment produit un entier dans
 TODO mettre des exemples intermédiaires
 
 *)
+
+let shuffle n =
+   (* - list -> liste dans lequel on va ajouter les paires. (Peut être faut-il mettre une FIFO ?)
+      - prev correspond au dernier nombre utilisé pour la 1ere composante
+      - p1 et p2 correspondent au deux derniers nombres utilisés pour la seconde composante
+      - nb_pair : nombre de pair, vaut 55 au début *)
+   let rec create_pairs list prev p1 p2 nb_pairs =
+      if nb_pairs = 0 then
+         list
+      else
+         let nb1 = ((prev + 21) mod 55) in
+         let nb2 =
+         if p1 < p2 then
+             (p1 - p2 + randmax)
+         else
+             (p1 - p2) in
+         create_pairs ((nb1, nb2) :: list) nb1 p2 nb2 (nb_pairs-1)
+
+      (* on appelle create_pairs avec une liste qui contient déjà les deux premières paires
+         (à l'envers, car on effectue un reverse de la liste à la fin) *)
+      in List.rev (create_pairs [(21, 1);(0, n)] 21 n 1 53)
+
 
 (* For now, we provide a shuffle function that can handle a few examples.
    This can be kept later for testing your implementation. *)
