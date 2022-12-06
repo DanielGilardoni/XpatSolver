@@ -18,9 +18,10 @@ Votre dépôt git doit être hébergé par le serveur GitLab de l'UFR d'informat
 https://gaufre.informatique.univ-paris-diderot.fr
 Voir le fichier [GIT.md](GIT.md) pour plus de détails sur son usage.
 Aucun autre code ne sera pris en compte, même hébergé par un autre serveur.
-Votre dépôt doit être rendu **privé** dès sa création, avec accès uniquement
-aux membres du binôme et aux enseignants de ce cours (au minimum l'utilisateur
-`letouzey` comme Maintaineur).
+Votre dépôt doit être un "fork" du dépôt enseignant du projet, et doit être
+rendu **privé** dès sa création, avec accès uniquement aux membres du binôme
+et aux enseignants de ce cours (au minimum l'utilisateur `letouzey` comme
+Maintaineur).
 Tout code laissé en accès libre sur Gaufre ou ailleurs sera considéré
 comme une incitation à la fraude, et sanctionné.
 
