@@ -15,7 +15,7 @@ let reduce n limit =
    Int.(of_float (to_float n /. to_float randmax *. to_float limit))
 
 
-(** DESCRIPTION DE L'ALGORITHME DE GENERATION DES PERMUTATIONS
+(* DESCRIPTION DE L'ALGORITHME DE GENERATION DES PERMUTATIONS
 
 a) Créer tout d'abord les 55 premières paires suivantes:
   * premières composantes : 0 pour la premiere paire,
@@ -72,26 +72,85 @@ let shuffle n =
       - prev correspond au dernier nombre utilisé pour la 1ere composante
       - p1 et p2 correspondent au deux derniers nombres utilisés pour la seconde composante
       - nb_pair : nombre de pair, vaut 55 au début *)
-   let rec create_pairs list prev p1 p2 nb_pairs =
+
+   (* Fonction pour faire la "difference" entre a et b, comme précisé dans la consigne *)
+   let substraction a b =
+      match (a, b) with
+      | _ when a < b -> (a - b + randmax)
+      | _ -> (a - b)
+   (* Permet de créer les 55 paires *)
+   in let rec create_pairs list prev p1 p2 nb_pairs =
       if nb_pairs = 0 then
          list
       else
          let nb1 = ((prev + 21) mod 55) in
-         let nb2 =
-         if p1 < p2 then
-             (p1 - p2 + randmax)
-         else
-             (p1 - p2) in
+         let nb2 = substraction p1 p2 in
          create_pairs ((nb1, nb2) :: list) nb1 p2 nb2 (nb_pairs-1)
 
-      (* on appelle create_pairs avec une liste qui contient déjà les deux premières paires
-         (à l'envers, car on effectue un reverse de la liste à la fin) *)
-      in List.rev (create_pairs [(21, 1);(0, n)] 21 n 1 53)
+   (* on appelle create_pairs avec une liste qui contient déjà les deux premières paires
+      (à l'envers, car on effectue un reverse de la liste à la fin) *)
+   in let pairs = List.rev (create_pairs [(21, 1);(0, n)] 21 n 1 53)
+   (* Fonction qui renvoie la première ou la deuxieme partie d'un tuple *)
+   in let tuple_nth tuple index = match tuple with
+                                  | (a, _) when index = 0 -> a
+                                  | (_, b) when index > 0 -> b
+                                  | _ -> raise Not_found
+   (* On trie les 55 paires par ordre croissant*)
+   in let pairs = List.sort (fun x y -> (tuple_nth x 0) - (tuple_nth y 0)) pairs
+   (* Coupe la liste à l'index indiqué puis renvoie un tuple avec deux listes *)
+   in let split_list l index =
+      let rec split_aux l1 l2 index =
+         if index = 0 then ((List.rev l1), l2) (* On reverse la liste l1 car les éléments sont placés à l'envers*)
+         else
+            match l2 with
+            | [] -> (l1, l2)
+            | a :: subList2 -> split_aux (a :: l1) subList2 (index - 1)
+      in split_aux [] l index
+   (* On sépare la liste à partir du 24ème élément *)
+   in let (l1, l2) = split_list pairs 24
+   (* On récupère les secondes composantes de l1, l2 *)
+   in let (l1, l2) = (tuple_nth (List.split l1) 1), (tuple_nth (List.split l2) 1)
+   (* On crée les deux fifo à partir de l1 (24 premiers éléments) et l2 (les éléments restants) *)
+   in let f1_init = Fifo.of_list l2
+   in let f2_init = Fifo.of_list l1
+   (* On renvoit un triplet avec la valeur du tirage + les deux fifos modifié *)
+   in let tirage f1 f2 =
+      let (n1, f1') = Fifo.pop f1 in
+      let (n2, f2') = Fifo.pop f2 in
+      let d = substraction n1 n2 in
+      (d, Fifo.push n2 f1', Fifo.push d f2')
+   (* Fonction pour faire nb tirages sur deux fifos *)
+   in let tirages fifo1 fifo2 nb =
+      let rec tirages_aux triplet nb =
+         match triplet with
+         | (_, f1, f2) when nb > 0 -> tirages_aux (tirage f1 f2) (nb - 1)
+         | (_, f1, f2) -> (f1, f2)
+      in tirages_aux (0, fifo1, fifo2) nb
 
+   in let (f1, f2) = tirages f1_init f2_init 165
+
+   in let get_and_delete l index =
+      let rec get_aux l1 l2 i =
+         match l2 with
+         | [] -> raise Not_found
+         | a :: sl2 when i <= 0 -> (a, (List.rev_append l1 sl2))
+         | a :: sl2 -> get_aux (a :: l1) sl2 (i-1)
+      in get_aux [] l index
+
+   in let gen_cards f1 f2 =
+      let numbers = (List.init 52 (fun x -> x)) in
+      let rec gen_aux temp cards f1 f2 max =
+         if max = 0 then cards
+         else
+            let (index, f1', f2') = tirage f1 f2 in
+            let index = reduce index max in
+            match (get_and_delete temp index) with
+            | (card, new_temp) -> gen_aux new_temp (card :: cards) f1' f2' (max - 1)
+      in gen_aux numbers [] f1 f2 52
+   in gen_cards f1 f2
 
 (* For now, we provide a shuffle function that can handle a few examples.
    This can be kept later for testing your implementation. *)
-
 let shuffle_test = function
   | 1 ->
      [13;32;33;35;30;46;7;29;9;48;38;36;51;41;26;20;23;43;27;
@@ -138,7 +197,3 @@ let shuffle_test = function
       46;10;25;35;39;48;51;40;33;13;42;16;32;50;24;47;26;6;34;
       45;5;3;41;15;12;31;17;28;8;29;30;37]
   | _ -> failwith "shuffle : unsupported number (TODO)"
-
-
-let shuffle n =
-  shuffle_test n (* TODO: changer en une implementation complete *)
