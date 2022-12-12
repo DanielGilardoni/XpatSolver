@@ -161,7 +161,6 @@ let rank card =
 let suit card =
   snd card
 
-  (* J'ai mis raise Not_Found à chaque fois *)
 let rules game card_num location =
   if (get_col game.columns card_num) = None && (get_reg game.registers card_num) = None then false
   else

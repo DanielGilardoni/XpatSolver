@@ -14,3 +14,8 @@ val add_column : Card.card list FArray.t -> int list -> int list -> int -> (Card
    un gameStruct avec les colonnes remplies *)
 val initGame : game -> int list -> gameStruct
 val initGameAux : game -> int -> int list -> int list -> gameStruct
+
+val remove : gameStruct -> int -> gameStruct
+val move : gameStruct -> int -> string -> gameStruct
+val rules : gameStruct -> int -> string -> bool
+val normalisation : gameStruct-> gameStruct
