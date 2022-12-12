@@ -104,6 +104,7 @@ let empty_reg registers =
 exception No_Register
 exception No_Column
 exception No_Index
+exception Rules
 
 let remove_in_col cols card =
   let index = get_col cols card in
@@ -154,5 +155,39 @@ let move game card_num location =
   - Fonction rules
   - Normalisation
   - Résoudre: ça lit un fichier -> liste de lignes -> pour chaque ligne split sur l'espace -> puis rules, remove, move sur mot1 mot2
-  
   *)
+
+let rank card =
+  fst card
+
+let suit card =
+  snd card
+
+  (* J'ai mis raise Not_Found à chaque fois *)
+let rules game card_num location =
+  if (get_col game.columns card_num) = None then 
+    if (get_reg game.registers card_num) = None then raise Not_found;
+  let card2_num = int_of_string(location) in
+  match location with 
+  | "T" -> if (empty_reg game.registers) = None then raise Not_found else 1 (* Si pas de registre empty_reg renvoit None*)
+  | "V" -> 
+    match game.name with
+    | Freecell -> if (empty_col game.columns) = None then raise Not_found else 1
+    | Seahaven -> if let card1 = (Card.of_num card_num) in not (rank card1 = 13) then raise Rules
+    else if (empty_col game.columns) = None then raise Not_found else 1
+    | _ -> raise Rules (* car colonne vide ne sont pas remplissables dans les autres modes *)
+    
+  | _ when card2_num > 0 && card2_num < 52 -> 
+    if (get_col game.columns card2_num) = None then raise Not_found (* Si l'emplacement n'existe pas, si il n'y a pas de colonne avec card2 au bout *)
+    else let card2 = Card.of_num card2_num in let card1 = Card.of_num card_num in 
+    if not (rank card2 = rank card1 + 1) then raise Not_found (* Si card1 n'est pas immediatement inferieure *)
+    else 
+      let suit1 = Card.num_of_suit (suit card1) in let suit2 = Card.num_of_suit (suit card2) in
+      match game.name with
+      | Freecell -> if (suit1 < 2 && suit2 < 2) || (suit1 > 1 && suit2 > 1) then raise Rules else 1 (* Si couleur alternée *)
+      | Seahaven -> if suit1 = suit2 then 1 else raise Rules (* Si même type*)
+      | Midnight -> if suit1 = suit2 then 1 else raise Rules (* Si même type*)
+      | Baker -> 1 (* si on arrive ici c'est bon pas de condition sur les types dans ce mode *)
+      | _ -> raise Not_found;
+
+  | _ -> raise Rules
