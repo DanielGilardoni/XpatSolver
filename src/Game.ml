@@ -159,7 +159,7 @@ let move game card_num location =
   
   - Fonction rules
   - Normalisation
-  - Résoudre: ça lit un fichier -> liste de lignes -> pour chaque ligne split sur l'espace -> puis rules, remove, move sur mot1 mot2
+  - Résoudre: ça lit un fichier -> liste de lignes -> pour chaque ligne split sur l'espace -> puis normalisation, rules, remove, move sur mot1 mot2
   *)
 
 let rank card =
@@ -216,10 +216,17 @@ let wanted_depot_cards depots =
     in let cards = wanted_aux depots_list [] 0
     in List.filter (fun e -> e != None) cards
 
-(*
+
 let normalisation game =
-  let col_list = FArray.to_list game.columns in
-  List.iter (fun col -> peek col) col_list
-*)
+  let wanted_cards = wanted_depot_cards game.depots in
+  let rec normalisation_aux game cards =
+    match cards with
+    | [] -> game
+    | card :: sub_cards -> try
+                      let new_game = remove game card in
+                      normalisation_aux new_game sub_cards
+                    with _ -> normalisation_aux game sub_cards
+    in normalisation_aux game wanted_cards
+
 
 (* Il faut mettre les rois en haut dans Seahaven *)
