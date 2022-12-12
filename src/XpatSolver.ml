@@ -1,6 +1,7 @@
 
 open XpatLib
 open XpatLib.Game
+open Format
 
 type mode =
   | Check of string (* filename of a solution file to check *)
@@ -29,9 +30,11 @@ let set_game_seed name =
   with _ -> failwith ("Error: <game>.<number> expected, with <game> in "^
                       "FreeCell Seahaven MidnightOil BakersDozen")
 
+
+let file = open_in "test.txt"
 (* TODO : La fonction suivante est à adapter et continuer *)
 
-let treat_game conf =
+let treat_game conf file =
   let permut = XpatRandom.shuffle conf.seed in
   Printf.printf "Voici juste la permutation de graine %d:\n" conf.seed;
   List.iter (fun n -> print_int n; print_string " ") permut;
@@ -41,7 +44,23 @@ let treat_game conf =
   print_newline ();
   print_string "C'est tout pour l'instant. TODO: continuer...\n";
   let game = Game.initGame conf.game permut in
-  exit 0
+  let rec treat_game_aux game file nb_move =
+    let line = input_line file in 
+    let mots = String.split_on_char ' ' line in
+    let card1 = List.nth mots 0 in
+    let mot2 = List.nth mots 1 in
+    let new_game1 = normalisation game in
+    if not (rules new_game1 card1 mot2) then Format.printf "ECHEC " nb_move (* print_string "ECHEC" in print_int nb_move *)
+    else
+    let new_game2 = remove new_game1 card1 in 
+    let new_game3 = move new_game2 card1 mot2 in
+  treat_game_aux new_game3 file 0
+  (* Corriger, afficher SUCCESS, faire boucle sur normalisation...*)
+
+  (*
+  - Résoudre: ça lit un fichier -> liste de lignes -> pour chaque ligne split sur l'espace -> puis normalisation, rules, remove, move sur mot1 mot2
+  *)
+(* Il faut mettre les rois en haut dans Seahaven *)
 
 let main () =
   Arg.parse

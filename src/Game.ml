@@ -155,13 +155,6 @@ let move game card_num location =
     
   | _ -> raise Not_found
 
-  (*
-  
-  - Fonction rules
-  - Normalisation
-  - Résoudre: ça lit un fichier -> liste de lignes -> pour chaque ligne split sur l'espace -> puis normalisation, rules, remove, move sur mot1 mot2
-  *)
-
 let rank card =
   fst card
 
@@ -213,20 +206,25 @@ let wanted_depot_cards depots =
            | Some card when rank card <= 13-> Some ((rank card + 1), suit card)
            | _ -> None
            in wanted_aux sl (card :: l2) (suit_num + 1)
-    in let cards = wanted_aux depots_list [] 0
-    in List.filter (fun e -> e != None) cards
+    in wanted_aux depots_list [] 0
 
+let add_to_depots depots card index =
+  let depot = get depots index in
+  set depots index (card :: depot)
 
 let normalisation game =
   let wanted_cards = wanted_depot_cards game.depots in
   let rec normalisation_aux game cards =
     match cards with
     | [] -> game
-    | card :: sub_cards -> try
-                      let new_game = remove game card in
-                      normalisation_aux new_game sub_cards
-                    with _ -> normalisation_aux game sub_cards
+    | card_opt :: sub_cards -> 
+      match card_opt with 
+      | None -> normalisation_aux game sub_cards
+      | Some card -> 
+      try
+        let game_temp = remove game (Card.to_num card) in
+        let new_depots = add_to_depots game_temp.depots card (Card.num_of_suit (suit card)) in 
+        let new_game = {name = game.name; registers = game_temp.registers; columns = game_temp.columns; depots = new_depots} in
+        normalisation_aux new_game sub_cards
+      with _ -> normalisation_aux game sub_cards
     in normalisation_aux game wanted_cards
-
-
-(* Il faut mettre les rois en haut dans Seahaven *)
