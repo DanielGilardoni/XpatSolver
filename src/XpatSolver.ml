@@ -42,6 +42,7 @@ let treat_game conf =
   List.iter (fun n -> Printf.printf "%s " (Card.to_string (Card.of_num n))) permut;
   print_newline ();
   let game = Game.initGame conf.game permut in 
+  affichage game;
   match conf.mode with 
   | Search s -> failwith "ToDo"
   | Check f ->
@@ -60,7 +61,7 @@ let treat_game conf =
         let mots = String.split_on_char ' ' line in
         let card1 = int_of_string (List.nth mots 0) in
         let mot2 = List.nth mots 1 in
-        let new_game1 = normalisation game in
+        let new_game1 = normalisation_full game in
         (* begin *)
         match (rules new_game1 card1 mot2) with
         | false -> Printf.printf "ECHEC %d" nb_move; exit 1

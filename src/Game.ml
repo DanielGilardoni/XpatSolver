@@ -212,22 +212,27 @@ let add_to_depots depots card index =
   set depots index (card :: depot)
 
 let normalisation game =
+  let is_normalise = true in 
   let wanted_cards = wanted_depot_cards game.depots in
   let rec normalisation_aux game cards =
     match cards with
-    | [] -> game
+    | [] -> (game, is_normalise)
     | card_opt :: sub_cards -> 
       match card_opt with 
       | None -> normalisation_aux game sub_cards
       | Some card -> 
       try
         let game_temp = remove game (Card.to_num card) in
+        let is_normalise = false in (* ça modifie pas is_normalise on crée une nouvelle variable à chaque fois *)
         let new_depots = add_to_depots game_temp.depots card (Card.num_of_suit (suit card)) in 
         let new_game = {name = game.name; registers = game_temp.registers; columns = game_temp.columns; depots = new_depots} in
         normalisation_aux new_game sub_cards
       with _ -> normalisation_aux game sub_cards
     in normalisation_aux game wanted_cards
 
+let rec normalisation_full game = 
+  let normalise = normalisation game in
+  if snd normalise then fst normalise else normalisation_full (fst normalise)
 
 let is_depot_complete depot suit_num = 
   let rec is_depot_complete_aux sub_depot index =
@@ -265,3 +270,34 @@ let is_won game =
     if is_empty columns_list then false 
     else 
       are_depots_complete game.depots
+
+
+
+let rec affichage_regs registers =
+  match registers with 
+  | [] -> ()
+  | None :: sub -> affichage_regs sub
+  | Some card :: sub ->
+    Printf.printf "%s ;%!" (Card.to_string card);
+    affichage_regs sub
+
+let rec affichage_list list =
+  match list with 
+  | [] -> ()
+  | card :: sub_list ->
+    Printf.printf "%s ;%!" (Card.to_string card);
+    affichage_list sub_list
+
+let rec affichage_list_list col_or_depots = 
+  match col_or_depots with
+  | [] -> ()
+  | col :: sub -> affichage_list col; affichage_list_list sub 
+
+
+let affichage game = 
+  let registers_list = FArray.to_list game.registers in
+  let columns_list = FArray.to_list game.columns in 
+  let depots_list = FArray.to_list game.depots in
+  affichage_regs registers_list;
+  affichage_list_list columns_list;
+  affichage_list_list depots_list;

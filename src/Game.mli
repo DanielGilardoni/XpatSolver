@@ -18,6 +18,9 @@ val initGameAux : game -> int -> int list -> int list -> gameStruct
 val remove : gameStruct -> int -> gameStruct
 val move : gameStruct -> int -> string -> gameStruct
 val rules : gameStruct -> int -> string -> bool
-val normalisation : gameStruct-> gameStruct
+val normalisation : gameStruct-> gameStruct * bool
+val normalisation_full : gameStruct -> gameStruct
 
 val is_won : gameStruct -> bool
+
+val affichage : gameStruct -> unit
