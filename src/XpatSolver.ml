@@ -31,31 +31,59 @@ let set_game_seed name =
                       "FreeCell Seahaven MidnightOil BakersDozen")
 
 
-let file = open_in "test.txt"
+
 (* TODO : La fonction suivante est à adapter et continuer *)
 
-let treat_game conf file =
+let treat_game conf =
   let permut = XpatRandom.shuffle conf.seed in
   Printf.printf "Voici juste la permutation de graine %d:\n" conf.seed;
   List.iter (fun n -> print_int n; print_string " ") permut;
   print_newline ();
   List.iter (fun n -> Printf.printf "%s " (Card.to_string (Card.of_num n))) permut;
   print_newline ();
-  let game = Game.initGame conf.game permut in
-  let rec treat_game_aux game file nb_move =
-    let line = input_line file in 
-    let mots = String.split_on_char ' ' line in
-    let card1 = int_of_string (List.nth mots 0) in
-    let mot2 = List.nth mots 1 in
-    let new_game1 = normalisation game in
-    if not (rules new_game1 card1 mot2) then
-      Printf.printf "ECHEC %d" nb_move (* print_string "ECHEC" in print_int nb_move *)
-    else
-      let new_game2 = remove new_game1 card1 in 
-      let new_game3 = move new_game2 card1 mot2
-    in new_game3
-  in let res = treat_game_aux new_game3 file 0;
+  let game = Game.initGame conf.game permut in 
+  match conf.mode with 
+  | Search s -> failwith "ToDo"
+  | Check f ->
+    let file = open_in f in
+    let read_aux =
+      try Some (input_line file) with End_of_file -> None in
+    let rec treat_game_aux game file nb_move = 
+      match read_aux with 
+      | None -> 
+        close_in file;
+        if is_won game then 
+          (Printf.printf "SUCCESS"; exit 0)
+        else
+          Printf.printf "ECHEC %d" nb_move; exit 1
+      | Some line -> 
+        let mots = String.split_on_char ' ' line in
+        let card1 = int_of_string (List.nth mots 0) in
+        let mot2 = List.nth mots 1 in
+        let new_game1 = normalisation game in
+        (* begin *)
+        match (rules new_game1 card1 mot2) with
+        | false -> Printf.printf "ECHEC %d" nb_move; exit 1
+        | true -> 
+          let new_game2 = remove new_game1 card1 in 
+          let new_game3 = move new_game2 card1 mot2 in
+          treat_game_aux new_game3 file (nb_move + 1)
+        (* end *)
+    in treat_game_aux game file 1 
 
+  (* 
+  let line = try input_line file with End_of_file -> Printf.printf "SUCCESS"; exit 0
+  in  
+  let mots = String.split_on_char ' ' line in
+  let card1 = int_of_string (List.nth mots 0) in
+  let mot2 = List.nth mots 1 in
+  let new_game1 = normalisation game in
+  match (rules new_game1 card1 mot2) with
+  | false -> Printf.printf "ECHEC %d" nb_move; exit 1
+  | true -> 
+    let new_game2 = remove new_game1 card1 in 
+    let new_game3 = move new_game2 card1 mot2
+     *)
 
 (* Corriger, afficher SUCCESS, faire boucle sur normalisation...*)
 (*

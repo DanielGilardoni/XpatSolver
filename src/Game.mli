@@ -19,3 +19,5 @@ val remove : gameStruct -> int -> gameStruct
 val move : gameStruct -> int -> string -> gameStruct
 val rules : gameStruct -> int -> string -> bool
 val normalisation : gameStruct-> gameStruct
+
+val is_won : gameStruct -> bool

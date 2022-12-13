@@ -227,3 +227,41 @@ let normalisation game =
         normalisation_aux new_game sub_cards
       with _ -> normalisation_aux game sub_cards
     in normalisation_aux game wanted_cards
+
+
+let is_depot_complete depot suit_num = 
+  let rec is_depot_complete_aux sub_depot index =
+    begin
+    match sub_depot with
+    | [] when index = 14 -> true
+    | [] -> false
+    | card :: sub_depot -> 
+      if 
+        not ((rank card) = index) then false 
+      else
+        let suit_card = suit card in
+        if (Card.num_of_suit suit_card) = suit_num then is_depot_complete_aux sub_depot (index + 1)
+        else false
+    end
+  in is_depot_complete_aux depot 0
+      
+let are_depots_complete depots = 
+  let rec are_depots_complete_aux index =
+    if index = 4 then true else 
+      let depot_i = get depots index in
+      if (is_depot_complete depot_i index) then are_depots_complete_aux (index+1) else false
+  in are_depots_complete_aux 0
+
+let rec is_empty columns =
+  match columns with 
+  | [] -> true
+  | reg_o_col :: sub -> if empty reg_o_col then is_empty sub else false
+
+let is_won game = 
+  let registers_list = FArray.to_list game.registers in
+  if empty registers_list then false 
+  else
+    let columns_list = FArray.to_list game.columns in 
+    if is_empty columns_list then false 
+    else 
+      are_depots_complete game.depots
