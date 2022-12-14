@@ -111,14 +111,14 @@ let get_col columns card_num =
   let rec get_col_aux cols index =
     match cols with
     | [] -> None
-    | col :: _ when card_num = 0 && (empty col) -> Some index
+    | col :: _ when card_num = 99 && (empty col) -> Some index
     | col :: sub_cols -> match (peek col) with
                          | Some card when (Card.to_num card) = card_num -> Some index
                          | _ -> get_col_aux sub_cols (index+1)
   in get_col_aux col_list 0
 
 let empty_col columns = 
-  get_col columns 0
+  get_col columns 99
 
 (* Renvoie l'index de la carte dans les registres *)
 let get_reg registers card_num =
@@ -126,7 +126,7 @@ let get_reg registers card_num =
   let rec get_reg_aux regs index =
     match regs with
     | [] -> None
-    | card :: _ when card_num = 0 && card = None -> Some index
+    | card :: _ when card_num = 99 && card = None -> Some index
     | card :: sub_regs -> match card with
                           | Some card when (Card.to_num card) = card_num-> Some index
                           | _ -> get_reg_aux sub_regs (index+1)
@@ -134,7 +134,7 @@ let get_reg registers card_num =
 
 (* Recuperer l'index du premier registre vide *)
 let empty_reg registers =
-  get_reg registers 0
+  get_reg registers 99
 
 exception No_Register
 exception No_Column
@@ -167,7 +167,7 @@ let add_to_reg registers card =
   | None -> raise No_Register
   | Some index -> set registers index (Some (Card.of_num card))
 
-(* Si card2 = 0, alors get_col renvoie l'index de la premiere colonne vide. *)
+(* Si card2 = 99, alors get_col renvoie l'index de la premiere colonne vide. *)
 let add_to_col columns card card2 =
   let index = get_col columns card2 in
   match index with
@@ -178,15 +178,15 @@ let add_to_col columns card card2 =
 (* Verifier si card_num2 vaut bien [1,51] AVANT *)
 let move game card_num location =
   let card2 = 
-    try int_of_string(location) with _ -> 0 in
+    try int_of_string(location) with _ -> 99 in
   match location with 
   | "T" -> let reg = add_to_reg game.registers card_num 
            in {name = game.name; registers = reg; columns = game.columns; depots = game.depots}
                            
-  | "V" -> let columns = add_to_col game.columns card_num 0
+  | "V" -> let columns = add_to_col game.columns card_num 99
            in {name = game.name; registers = game.registers; columns = columns; depots = game.depots}
   
-  | _ when card2 > 0 && card2 < 52 -> let columns = add_to_col game.columns card_num card2
+  | _ when card2 >= 0 && card2 < 52 -> let columns = add_to_col game.columns card_num card2
            in {name = game.name; registers = game.registers; columns = columns; depots = game.depots}
     
   | _ -> raise Not_found
@@ -201,7 +201,7 @@ let rules game card_num location =
   if (get_col game.columns card_num) = None && (get_reg game.registers card_num) = None then false
   else
     let card2_num = 
-      try int_of_string(location) with _ -> 0 in
+      try int_of_string(location) with _ -> 99 in
     match location with 
     | "T" -> (empty_reg game.registers) != None (* Si pas de registre empty_reg renvoit None*)
     | "V" ->
@@ -213,7 +213,7 @@ let rules game card_num location =
                       else (empty_col game.columns) = None
         | _ -> false (* car colonne vide ne sont pas remplissables dans les autres modes *)
       end 
-    | _ when card2_num > 0 && card2_num < 52 -> 
+    | _ when card2_num >= 0 && card2_num < 52 -> 
       if (get_col game.columns card2_num) = None then false (* Si l'emplacement n'existe pas, si il n'y a pas de colonne avec card2 au bout *)
       else
           let card2 = Card.of_num card2_num in
@@ -262,7 +262,6 @@ let normalisation game =
       | Some card ->
       try
         let game_temp = remove game (Card.to_num card) in
-        disp_card_num card;
         (* Printf.printf "after remove"; *)
         (* affichage game_temp; *)
          (* ça modifie pas is_normalise on crée une nouvelle variable à chaque fois *)

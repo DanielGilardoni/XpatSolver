@@ -100,14 +100,14 @@ let treat_game conf =
 (* Il faut mettre les rois en haut dans Seahaven *)
 
 let main () =
-  (* Arg.parse
+   Arg.parse
     [("-check", String (fun filename -> config.mode <- Check filename),
         "<filename>:\tValidate a solution file");
      ("-search", String (fun filename -> config.mode <- Search filename),
         "<filename>:\tSearch a solution and write it to a solution file")]
     set_game_seed (* pour les arguments seuls, sans option devant *)
-    "XpatSolver <game>.<number> : search solution for Xpat2 game <number>"; *)
-  (* treat_game config *)
+    "XpatSolver <game>.<number> : search solution for Xpat2 game <number>"; 
+   treat_game config
   (* let permut = XpatRandom.shuffle config.seed in
   Printf.printf "Voici juste la permutation de graine %d:\n" config.seed;
   List.iter (fun n -> print_int n; print_string " ") permut;
