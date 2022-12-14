@@ -207,10 +207,10 @@ let rules game card_num location =
     | "V" ->
       begin
         match game.name with
-        | Freecell -> (empty_col game.columns) = None
+        | Freecell -> (empty_col game.columns) != None
         | Seahaven -> let card1 = (Card.of_num card_num) in 
                       if not (rank card1 = 13) then false
-                      else (empty_col game.columns) = None
+                      else (empty_col game.columns) != None
         | _ -> false (* car colonne vide ne sont pas remplissables dans les autres modes *)
       end 
     | _ when card2_num >= 0 && card2_num < 52 -> 
@@ -218,13 +218,13 @@ let rules game card_num location =
       else
           let card2 = Card.of_num card2_num in
           let card1 = Card.of_num card_num in 
-      if not (rank card2 = rank card1 + 1) then false (* Si card1 n'est pas immediatement inferieure *)
+      if not ((rank card2) = (rank card1) + 1) then false (* Si card1 n'est pas immediatement inferieure *)
       else 
         let suit1 = Card.num_of_suit (suit card1) in
         let suit2 = Card.num_of_suit (suit card2) in
         begin
           match game.name with
-          | Freecell -> (suit1 < 2 && suit2 < 2) || (suit1 > 1 && suit2 > 1) (* Si couleur alternée *)
+          | Freecell -> not ((suit1 < 2 && suit2 < 2) || (suit1 > 1 && suit2 > 1)) (* Si couleur alternée *)
           | Seahaven -> suit1 = suit2 (* Si même type*)
           | Midnight -> suit1 = suit2 (* Si même type*)
           | Baker -> true (* si on arrive ici c'est bon pas de condition sur les types dans ce mode *)

@@ -61,10 +61,10 @@ let treat_game conf =
         let mots = String.split_on_char ' ' line in
         let card1 = (int_of_string (List.hd mots)) in
         let mot2 = List.nth mots 1 in
-        try
+        (* try
           Printf.printf "\n%s,%s %i\n" (Card.to_string (Card.of_num card1)) (Card.to_string (Card.of_num (int_of_string mot2))) nb_move;
           with _ ->
-            Printf.printf "\n%s,%s\n" (Card.to_string (Card.of_num card1)) mot2;
+            Printf.printf "\n%s,%s\n" (Card.to_string (Card.of_num card1)) mot2; *)
         (* affichage game; *)
         let new_game1 = normalisation_full game in
         (* Printf.printf "\n" *)
