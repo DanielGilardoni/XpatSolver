@@ -50,6 +50,41 @@ let initGame gameType cards =
   (* | _ -> raise Not_found *)
 
 
+
+
+
+  let rec affichage_regs registers =
+    match registers with 
+    | [] -> ()
+    | None :: sub -> affichage_regs sub
+    | Some card :: sub ->
+      Printf.printf "%s ;%!" (Card.to_string card);
+      affichage_regs sub
+  
+  let rec affichage_list list =
+    match list with 
+    | [] -> ()
+    | card :: sub_list ->
+      Printf.printf "%s ;%!" (Card.to_string card);
+      affichage_list sub_list
+  
+  let rec affichage_list_list col_or_depots = 
+    match col_or_depots with
+    | [] -> ()
+    | col :: sub -> Printf.printf "\n | "; affichage_list col; affichage_list_list sub 
+  
+  
+  let affichage game = 
+    let registers_list = FArray.to_list game.registers in
+    let columns_list = FArray.to_list game.columns in 
+    let depots_list = FArray.to_list game.depots in
+    Printf.printf "Registers : \n";
+    affichage_regs registers_list;
+    Printf.printf "\nColumns : \n";
+    affichage_list_list columns_list;
+    Printf.printf "\nDepots : \n";
+    affichage_list_list depots_list;
+
 (* Ecriture des fonctions pour la partie I/2, Peut qu'il faudra les mettres ailleurs plus tard *)
 
 exception Empty_Stack
@@ -142,7 +177,8 @@ let add_to_col columns card card2 =
 
 (* Verifier si card_num2 vaut bien [1,51] AVANT *)
 let move game card_num location =
-  let card2 = int_of_string(location) in
+  let card2 = 
+    try int_of_string(location) with _ -> 0 in
   match location with 
   | "T" -> let reg = add_to_reg game.registers card_num 
            in {name = game.name; registers = reg; columns = game.columns; depots = game.depots}
@@ -164,9 +200,10 @@ let suit card =
 let rules game card_num location =
   if (get_col game.columns card_num) = None && (get_reg game.registers card_num) = None then false
   else
-    let card2_num = int_of_string(location) in
+    let card2_num = 
+      try int_of_string(location) with _ -> 0 in
     match location with 
-    | "T" -> (empty_reg game.registers) = None (* Si pas de registre empty_reg renvoit None*)
+    | "T" -> (empty_reg game.registers) != None (* Si pas de registre empty_reg renvoit None*)
     | "V" ->
       begin
         match game.name with
@@ -211,26 +248,32 @@ let add_to_depots depots card index =
   let depot = get depots index in
   set depots index (card :: depot)
 
+let disp_card_num card = 
+  Printf.printf "Normalise: %s\n" (Card.to_string card)
+
 let normalisation game =
-  let is_normalise = true in 
   let wanted_cards = wanted_depot_cards game.depots in
-  let rec normalisation_aux game cards =
+  let rec normalisation_aux game cards is_normalise =
     match cards with
     | [] -> (game, is_normalise)
     | card_opt :: sub_cards -> 
       match card_opt with 
-      | None -> normalisation_aux game sub_cards
-      | Some card -> 
+      | None -> normalisation_aux game sub_cards is_normalise
+      | Some card ->
       try
         let game_temp = remove game (Card.to_num card) in
-        let is_normalise = false in (* ça modifie pas is_normalise on crée une nouvelle variable à chaque fois *)
+        disp_card_num card;
+        (* Printf.printf "after remove"; *)
+        (* affichage game_temp; *)
+         (* ça modifie pas is_normalise on crée une nouvelle variable à chaque fois *)
         let new_depots = add_to_depots game_temp.depots card (Card.num_of_suit (suit card)) in 
         let new_game = {name = game.name; registers = game_temp.registers; columns = game_temp.columns; depots = new_depots} in
-        normalisation_aux new_game sub_cards
-      with _ -> normalisation_aux game sub_cards
-    in normalisation_aux game wanted_cards
+        normalisation_aux new_game sub_cards false
+      with _ -> normalisation_aux game sub_cards is_normalise
+    in normalisation_aux game wanted_cards true
 
 let rec normalisation_full game = 
+  (* Printf.printf "\n y \n"; *)
   let normalise = normalisation game in
   if snd normalise then fst normalise else normalisation_full (fst normalise)
 
@@ -273,31 +316,3 @@ let is_won game =
 
 
 
-let rec affichage_regs registers =
-  match registers with 
-  | [] -> ()
-  | None :: sub -> affichage_regs sub
-  | Some card :: sub ->
-    Printf.printf "%s ;%!" (Card.to_string card);
-    affichage_regs sub
-
-let rec affichage_list list =
-  match list with 
-  | [] -> ()
-  | card :: sub_list ->
-    Printf.printf "%s ;%!" (Card.to_string card);
-    affichage_list sub_list
-
-let rec affichage_list_list col_or_depots = 
-  match col_or_depots with
-  | [] -> ()
-  | col :: sub -> affichage_list col; affichage_list_list sub 
-
-
-let affichage game = 
-  let registers_list = FArray.to_list game.registers in
-  let columns_list = FArray.to_list game.columns in 
-  let depots_list = FArray.to_list game.depots in
-  affichage_regs registers_list;
-  affichage_list_list columns_list;
-  affichage_list_list depots_list;
