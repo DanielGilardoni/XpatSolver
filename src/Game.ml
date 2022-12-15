@@ -10,6 +10,12 @@ type gameStruct = {
   depots : Card.card list FArray.t;
 }
 
+(*
+let kings_on_back columns =
+  let no_kings = FArray.map (fun col -> List.filter (fun elt -> (rank elt) != 13)) columns in
+  let columns = FArray.map (fun col -> List.filter (fun elt -> (rank elt) = 13)) cols
+*)
+
 (* On ajoute i cards dans la liste l *)
 let rec add l cards i = 
   if i > 0 then 
@@ -43,51 +49,49 @@ let initGameAux gameType nbReg cards cardsPerCol =
 
 let initGame gameType cards =
   match gameType with
-  | Freecell -> initGameAux Freecell 4 cards [7;6;7;6;7;6]
+  | Freecell -> initGameAux Freecell 4 cards [7;6;7;6;7;6;7;6]
   | Seahaven -> initGameAux Seahaven 4 cards (List.init 10 (fun x -> 5)) 
-  | Midnight -> initGameAux Midnight 0 cards ((List.init 17 (fun x -> 3)) @ [1])
-  | Baker -> initGameAux Baker 0 cards (List.init 13 (fun x -> 4))
-  (* | _ -> raise Not_found *)
+  | Midnight -> initGameAux Midnight 1 cards ((List.init 17 (fun x -> 3)) @ [1])
+  | Baker -> initGameAux Baker 1 cards (List.init 13 (fun x -> 4))
+
+let rec affichage_regs registers =
+  match registers with 
+  | [] -> ()
+  | None :: sub -> affichage_regs sub
+  | Some card :: sub ->
+    Printf.printf "%s ;%!" (Card.to_string card);
+    affichage_regs sub
+
+let rec affichage_list list =
+  match list with 
+  | [] -> ()
+  | card :: sub_list ->
+    Printf.printf "%s ;%!" (Card.to_string card);
+    affichage_list sub_list
+
+let rec affichage_list_list col_or_depots = 
+  match col_or_depots with
+  | [] -> ()
+  | col :: sub -> Printf.printf "\n | "; affichage_list col; affichage_list_list sub 
 
 
-
-
-
-  let rec affichage_regs registers =
-    match registers with 
-    | [] -> ()
-    | None :: sub -> affichage_regs sub
-    | Some card :: sub ->
-      Printf.printf "%s ;%!" (Card.to_string card);
-      affichage_regs sub
-  
-  let rec affichage_list list =
-    match list with 
-    | [] -> ()
-    | card :: sub_list ->
-      Printf.printf "%s ;%!" (Card.to_string card);
-      affichage_list sub_list
-  
-  let rec affichage_list_list col_or_depots = 
-    match col_or_depots with
-    | [] -> ()
-    | col :: sub -> Printf.printf "\n | "; affichage_list col; affichage_list_list sub 
-  
-  
-  let affichage game = 
-    let registers_list = FArray.to_list game.registers in
-    let columns_list = FArray.to_list game.columns in 
-    let depots_list = FArray.to_list game.depots in
-    Printf.printf "Registers : \n";
-    affichage_regs registers_list;
-    Printf.printf "\nColumns : \n";
-    affichage_list_list columns_list;
-    Printf.printf "\nDepots : \n";
-    affichage_list_list depots_list;
+let affichage game = 
+  let registers_list = FArray.to_list game.registers in
+  let columns_list = FArray.to_list game.columns in 
+  let depots_list = FArray.to_list game.depots in
+  Printf.printf "Registers : \n";
+  affichage_regs registers_list;
+  Printf.printf "\nColumns : \n";
+  affichage_list_list columns_list;
+  Printf.printf "\nDepots : \n";
+  affichage_list_list depots_list;
 
 (* Ecriture des fonctions pour la partie I/2, Peut qu'il faudra les mettres ailleurs plus tard *)
 
 exception Empty_Stack
+exception No_Register
+exception No_Column
+exception No_Index
 
 let push stack elt =
   match stack with
@@ -136,10 +140,6 @@ let get_reg registers card_num =
 let empty_reg registers =
   get_reg registers 99
 
-exception No_Register
-exception No_Column
-exception No_Index
-
 let remove_in_col cols card =
   let index = get_col cols card in
   match index with
@@ -162,9 +162,11 @@ let remove game card =
     {name = game.name; registers = game.registers; columns = col; depots = game.depots}
 
 let add_to_reg registers card =
+  if (FArray.length registers) = 1 then
+    raise No_Register;
   let reg = empty_reg registers in 
   match reg with
-  | None -> raise No_Register
+  | None -> raise No_Index
   | Some index -> set registers index (Some (Card.of_num card))
 
 (* Si card2 = 99, alors get_col renvoie l'index de la premiere colonne vide. *)
@@ -203,7 +205,13 @@ let rules game card_num location =
     let card2_num = 
       try int_of_string(location) with _ -> 99 in
     match location with 
-    | "T" -> (empty_reg game.registers) != None (* Si pas de registre empty_reg renvoit None*)
+    | "T" ->
+      begin
+        match game.name with
+        | Midnight -> false
+        | Baker -> false
+        | _ -> (empty_reg game.registers) != None
+      end
     | "V" ->
       begin
         match game.name with
@@ -280,11 +288,11 @@ let is_depot_complete depot suit_num =
   let rec is_depot_complete_aux sub_depot index =
     begin
     match sub_depot with
-    | [] when index = 14 -> true
+    | [] when index = 13 -> true
     | [] -> false
     | card :: sub_depot -> 
-      if 
-        not ((rank card) = index) then false 
+      if not ((rank card) = (13 - index)) then
+        false
       else
         let suit_card = suit card in
         if (Card.num_of_suit suit_card) = suit_num then is_depot_complete_aux sub_depot (index + 1)
@@ -299,6 +307,11 @@ let are_depots_complete depots =
       if (is_depot_complete depot_i index) then are_depots_complete_aux (index+1) else false
   in are_depots_complete_aux 0
 
+let is_empty_reg reg =
+  match reg with
+  | [] -> true
+  | reg -> (List.filter (fun x -> x != None) reg) = []
+
 let rec is_empty columns =
   match columns with 
   | [] -> true
@@ -306,11 +319,13 @@ let rec is_empty columns =
 
 let is_won game = 
   let registers_list = FArray.to_list game.registers in
-  if empty registers_list then false 
+  if not (is_empty_reg registers_list) then
+    false
   else
     let columns_list = FArray.to_list game.columns in 
-    if is_empty columns_list then false 
-    else 
+    if not (is_empty columns_list) then
+        false
+    else
       are_depots_complete game.depots
 
 

@@ -50,37 +50,44 @@ let treat_game conf =
     let read_aux () =
       try Some (input_line file) with End_of_file -> None in
     let rec treat_game_aux game file nb_move = 
-      match (read_aux ()) with 
-      | None -> 
-        close_in file;
-        if is_won game then 
-          (Printf.printf "SUCCESS"; exit 0)
-        else
-          Printf.printf "ECHEC %d" nb_move; exit 1
-      | Some line -> 
-        let mots = String.split_on_char ' ' line in
-        let card1 = (int_of_string (List.hd mots)) in
-        let mot2 = List.nth mots 1 in
-        (* try
-          Printf.printf "\n%s,%s %i\n" (Card.to_string (Card.of_num card1)) (Card.to_string (Card.of_num (int_of_string mot2))) nb_move;
-          with _ ->
-            Printf.printf "\n%s,%s\n" (Card.to_string (Card.of_num card1)) mot2; *)
-        (* affichage game; *)
-        let new_game1 = normalisation_full game in
-        (* Printf.printf "\n" *)
-        (* affichage new_game1; *)
-        (* begin *)
-        match (rules new_game1 card1 mot2) with
-        | false -> Printf.printf "ECHEC %d" nb_move; exit 1
-        | true -> 
-          let new_game2 = remove new_game1 card1 in 
-          let new_game3 = move new_game2 card1 mot2 in
-          treat_game_aux new_game3 file (nb_move + 1)
+      try
+        match (read_aux ()) with 
+        | None ->
+          let game = normalisation_full game in
+          close_in file;
+          if is_won game then 
+            (Printf.printf "SUCCES"; exit 0)
+          else
+            (Printf.printf "ECHEC %d" nb_move; exit 1)
+        | Some line -> 
+          let mots = String.split_on_char ' ' line in
+          let card1 = (int_of_string (List.hd mots)) in
+          let mot2 = List.nth mots 1 in
+          (* try
+            Printf.printf "\n%s,%s %i\n" (Card.to_string (Card.of_num card1)) (Card.to_string (Card.of_num (int_of_string mot2))) nb_move;
+            with _ ->
+              (* Printf.printf "\n%s,%s\n" (Card.to_string (Card.of_num card1)) mot2; *)
+          Printf.printf "%d\n" nb_move;
+          affichage game; *)
+          let new_game1 = normalisation_full game in
+          (* Printf.printf "\n" *)
+          (* affichage new_game1; *)
+          (* begin *)
+          (* Printf.printf "%b\n" (rules new_game1 card1 mot2); *)
+          match (rules new_game1 card1 mot2) with
+          | false -> Printf.printf "ECHEC %d" nb_move; exit 1
+          | true -> 
+            let new_game2 = remove new_game1 card1 in 
+            let new_game3 = move new_game2 card1 mot2 in
+            (* Printf.printf "\nDebut move\n";
+            affichage new_game3; *)
+            treat_game_aux new_game3 file (nb_move + 1)
+      with _ -> (Printf.printf "ECHEC %d" nb_move; exit 1)
         (* end *)
     in treat_game_aux game file 1
 
   (* 
-  let line = try input_line file with End_of_file -> Printf.printf "SUCCESS"; exit 0
+  let line = try input_line file with End_of_file -> Printf.printf "SUCCES"; exit 0
   in  
   let mots = String.split_on_char ' ' line in
   let card1 = int_of_string (List.nth mots 0) in
@@ -93,7 +100,7 @@ let treat_game conf =
     let new_game3 = move new_game2 card1 mot2
      *)
 
-(* Corriger, afficher SUCCESS, faire boucle sur normalisation...*)
+(* Corriger, afficher SUCCES, faire boucle sur normalisation...*)
 (*
 - Résoudre: ça lit un fichier -> liste de lignes -> pour chaque ligne split sur l'espace -> puis normalisation, rules, remove, move sur mot1 mot2
 *)
