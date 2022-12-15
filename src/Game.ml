@@ -10,11 +10,19 @@ type gameStruct = {
   depots : Card.card list FArray.t;
 }
 
-(*
+
+let rank card =
+  fst card
+
+let suit card =
+  snd card
+
+
 let kings_on_back columns =
-  let no_kings = FArray.map (fun col -> List.filter (fun elt -> (rank elt) != 13)) columns in
-  let columns = FArray.map (fun col -> List.filter (fun elt -> (rank elt) = 13)) cols
-*)
+  FArray.map (fun col -> 
+    let kings = (List.filter (fun elt -> (rank elt) = 13) col) in 
+    let no_kings = (List.filter (fun elt -> (rank elt) != 13) col) in
+    no_kings @ kings) columns
 
 (* On ajoute i cards dans la liste l *)
 let rec add l cards i = 
@@ -52,7 +60,8 @@ let initGame gameType cards =
   | Freecell -> initGameAux Freecell 4 cards [7;6;7;6;7;6;7;6]
   | Seahaven -> initGameAux Seahaven 4 cards (List.init 10 (fun x -> 5)) 
   | Midnight -> initGameAux Midnight 1 cards ((List.init 17 (fun x -> 3)) @ [1])
-  | Baker -> initGameAux Baker 1 cards (List.init 13 (fun x -> 4))
+  | Baker -> let game = initGameAux Baker 1 cards (List.init 13 (fun x -> 4)) in
+    {name = gameType ; columns = (kings_on_back game.columns) ; registers = game.registers; depots = game.depots} (* On met les rois au fond dans chaque colonne *)
 
 let rec affichage_regs registers =
   match registers with 
@@ -192,12 +201,6 @@ let move game card_num location =
            in {name = game.name; registers = game.registers; columns = columns; depots = game.depots}
     
   | _ -> raise Not_found
-
-let rank card =
-  fst card
-
-let suit card =
-  snd card
 
 let rules game card_num location =
   if (get_col game.columns card_num) = None && (get_reg game.registers card_num) = None then false
