@@ -123,3 +123,11 @@ let rec for_all f = function
 let rec exists f = function
   | Leaf x -> f x
   | Node (odds, evens) -> exists f odds || exists f evens
+
+(* Fonction pour faire une copie. Utile pour utiliser Stdmob.compare *)
+let copy t =
+  map (fun x -> x) t
+
+(* On fait une copie de t1 et t2. On les compare avec Stdlib.compare *)
+let compare t1 t2 =
+  (Stdlib.compare (copy t1) (copy t2)) = 0
