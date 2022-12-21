@@ -22,5 +22,4 @@ val normalisation : gameStruct-> gameStruct * bool
 val normalisation_full : gameStruct -> gameStruct
 
 val is_won : gameStruct -> bool
-
 val affichage : gameStruct -> unit

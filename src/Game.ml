@@ -170,13 +170,23 @@ let remove game card =
   with No_Index -> let col = remove_in_col game.columns card in
     {name = game.name; registers = game.registers; columns = col; depots = game.depots}
 
+let compare_cards_opt card1 card2 = 
+  match card1 with 
+  | None -> -1
+  | Some c1 -> match card2 with
+               | None -> 1
+               | Some c2 -> if (Card.to_num c1) < (Card.to_num c2) then -1 else 1
+
 let add_to_reg registers card =
-  if (FArray.length registers) = 1 then
+  if (FArray.length registers) = 1 then 
     raise No_Register;
   let reg = empty_reg registers in 
   match reg with
   | None -> raise No_Index
-  | Some index -> set registers index (Some (Card.of_num card))
+  | Some index -> let new_registers = (set registers index (Some (Card.of_num card))) in
+                  let reg_list = FArray.to_list new_registers in
+                  let sort_regs = List.sort compare_cards_opt reg_list in
+                  FArray.of_list sort_regs
 
 (* Si card2 = 99, alors get_col renvoie l'index de la premiere colonne vide. *)
 let add_to_col columns card card2 =
