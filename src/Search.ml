@@ -11,23 +11,95 @@ let compare_games (game1 : Game.gameStruct) (game2 : Game.gameStruct) : bool =
 (* définir le type state et la fonction compare_state auparavant *)
 module States = Set.Make (struct type t = gameStruct let compare = compare_games end)
 
-let add_in_regs game reachable reached = 
+(* On renvoie to_add_list qui contient tous les états atteignables depuis game, en deplaçant une carte dans un registre vide *)
+(* let add_in_regs game = 
   let rec add_in_regs_aux index to_add_list = 
     if index >= FArray.length game.columns then 
       to_add_list
     else
       let col = get game.columns index in
-      if List.length col < 2 then
+      if List.length col = 0 then
         add_in_regs_aux (index+1) to_add_list
       else 
-        try let new_regs = add_to_reg game.registers (List.hd col) 
+        try let new_regs = add_to_reg game.registers (List.hd col)  (* Il manque de remove la carte *)
             in let new_game = {name = game.name; registers = new_regs; columns = game.columns; depots = game.depots}
             in add_in_regs_aux (index + 1) (new_game :: to_add_list)
         with _ -> add_in_regs_aux (index + 1) to_add_list
-  in add_in_regs_aux 0 []
+  in add_in_regs_aux 0 [] *)
+
+(* On ajoute à to_add_list tous les états atteignables depuis game en deplaçant une carte dans une colonne vide 
+   depuis un registre non vide*)
+(* let add_in_empty_cols_from_regs game to_add_list = 
+  let rec add_aux index to_add_list =
+    if index >= FArray.length game.registers then to_add_list
+    else let card_opt = get game.registers index in 
+    match card_opt with
+    | None -> add_aux (index + 1) to_add_list
+    | Some card -> 
+      try let new_cols = add_to_col game.columns card 99
+              in let new_regs = remove (* Mais il faudrait remove avant, sauf qu'on sait pas si add va marcher vu qu'on fait un try*)
+              in let new_game = {name = game.name; registers = game.registers; columns = new_cols; depots = game.depots}
+              in add_aux (index + 1) (new_game :: to_add_list)
+          with _ -> add_aux (index + 1) to_add_list
+  in add_aux 0 to_add_list *)
+
+
+
+(* On "ajoute" (en realité c'est une nouvelle liste) à to_add_list tout les états atteignables depuis game 
+   en deplaçant une carte dans une colonne vide (depuis une autre colonne contenant au moins 2 cartes 
+   ou depuis un registre non vide (cas géré par add_in_empty_cols_from_regs) )  *)
+(* let add_in_empty_cols game to_add_list =
+  match game.name with
+  | Baker -> to_add_list
+  | Midnight -> to_add_list
+  | _ -> 
+    if empty_col game.columns = None then to_add_list  (* Si on fait ça quel interet de faire try with ?*)
+    else let rec add_in_empty_cols_aux index to_add_list = 
+      if index >= FArray.length game.columns then 
+        add_in_empty_cols_from_regs game  (* Faut ajouter les cartes des registres *)
+      else 
+        let col = get game.columns index in
+        if List.length col < 2 then
+          add_in_empty_cols_aux (index+1) to_add_list
+        else 
+          try let new_cols = add_to_col game.columns (List.hd col) 
+              in let new_game = {name = game.name; registers = game.registers; columns = new_cols; depots = game.depots}
+              in add_in_empty_cols_aux (index + 1) (new_game :: to_add_list)
+          with _ -> add_in_empty_cols_aux (index + 1) to_add_list
+    in add_in_empty_cols_aux 0 to_add_list *)
+
+
+
+
+
+
+
+
+
+
+(* Test si on peut deplacer toutes les cartes sur location, et si oui ajoute cet état à to_add_list
+   C'est peut-être plus couteux mais c'est plus simple je crois que les fonctions au dessus *)
+let add game location to_add_list = 
+  let rec add_aux card1_num to_add_list = 
+    if card1_num >= 52 then to_add_list
+    else match (rules game card1_num location) with
+    | False -> add_aux (card1_num + 1) to_add_list
+    | True -> 
+      let new_game = remove game card1_num in
+      let new_game = move new_game card1_num location in 
+      add_aux (card1_num + 1) (new_game :: to_add_list)
+  in add_aux 0 to_add_list
 
 (* Ajoute tous les états de partie atteignables en un coup depuis game à reachable, sauf si ils appartiennent à reached *)
-(* let add_reachable game reachable reached =
+let add_reachable game reachable reached =
+  let to_add_list = add game "T" [] in
+  let to_add_list = add game "V" to_add_list in
+  (* On va faire une fonction qui calcule les cartes ajoutables à une colonne non vide en fct du type de jeu 
+     Puis on ajoute dans une liste de tuple de la forme (carte_attendues carte_destination) pour chaque col non vide 
+     Puis on fait match rules game (fst tuple) (snd tuple); remove; move...
+     Sinon plus couteux, mais on peut utiliser add avec comme location la carte au bout de chaque colonne non vide *)
+
+(*
 -possible ? -> si reg vide alors tt deb de col. Si col vide alors tt reg ou tt autre deb col de taille > 1.
               sinon voir cartes attendues pour chaque col et voir si accessible
 -rules (t cho) -> decouper etapes prec en 3 fct qu'on appel en fct de mode de jeu et en precisant mode si besoin
@@ -35,13 +107,6 @@ let add_in_regs game reachable reached =
 -move 
 -reached ?
 -add  *)
-NOOOOOOOOOOO xd
-Vzzz bonne nuit xD Bisous bisous d'amour Dadou. Coeur sur 
-C'est tchao
-Bonne nuit
-Bisous
-Bebou
-Je push comme ça ?
 
 (* Recherche exhaustive ou non ? *)
 let search_sol (reachable : States) (reached : States) =
