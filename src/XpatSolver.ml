@@ -1,6 +1,7 @@
 
 open XpatLib
 open XpatLib.Game
+open XpatLib.Search
 open Format
 
 type mode =
@@ -40,7 +41,20 @@ let treat_game conf =
   let game = Game.initGame conf.game permut in 
   (* disp game; *)
   match conf.mode with 
-  | Search s -> failwith "ToDo"
+  | Search s -> 
+    let file = open_out s in
+    let reachable = States.empty in 
+    let reachable = States.add game reachable in
+    let reached = States.empty in 
+    let sol = search_sol reachable reached in
+    begin
+    match sol with 
+    | None -> (close_out file; Printf.printf "INSOLUBLE"; exit 2)
+    | Some moves ->
+      (write_moves file moves;
+      Printf.printf "SUCCESS"; exit 0)
+    end
+
   | Check f ->
     let file = open_in f in
     let read_aux () =
@@ -85,6 +99,8 @@ let treat_game conf =
       with _ -> (Printf.printf "ECHEC %d" nb_move; exit 1)
         (* end *)
     in treat_game_aux game file 1
+
+  
 
 let main () =
    Arg.parse

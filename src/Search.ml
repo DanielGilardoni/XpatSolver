@@ -15,6 +15,14 @@ let set_of_list (games : Game.gameStruct list) =
   List.iter (fun x -> let set = States.add x set in ()) games;
   set
 
+let rec set_reachable reachable reached (games : Game.gameStruct list) = 
+  match games with 
+  | [] -> reachable
+  | game :: sub_games -> 
+    (* Si l'etat à déjà été vu ou est déjà dans les etats atteignables, on passe au suivant sinon on l'ajoute aux etats atteignables *)
+    if (States.mem game reached) || (States.mem game reachable) then set_reachable reachable reached sub_games 
+    else let reachable = (States.add game reachable) in set_reachable reachable reached sub_games
+
 (* On renvoie to_add_list qui contient tous les états atteignables depuis game, en deplaçant une carte dans un registre vide *)
 (* let add_in_regs game = 
   let rec add_in_regs_aux index to_add_list = 
@@ -115,7 +123,7 @@ let add_reachable game reachable reached =
                           | card :: _ -> let to_add_list = add game (string_of_int (Card.to_num card)) to_add_list in
                                         check_cols_and_add sub_cols to_add_list
   in let to_add_list = check_cols_and_add columns to_add_list
-  in set_of_list to_add_list
+  in let reachable = set_reachable reachable reached to_add_list in reachable
 
 (*
 -possible ? -> si reg vide alors tt deb de col. Si col vide alors tt reg ou tt autre deb col de taille > 1.
@@ -128,14 +136,28 @@ let add_reachable game reachable reached =
 
 (* Recherche exhaustive ou non ? *)
 let rec search_sol reachable reached =
-  if States.is_empty reachable then (Printf.printf "Echec"; exit 1) (* Si exhaustive alors Insoluble et exit 2 *)
+  if States.is_empty reachable then None (* Si exhaustive alors Insoluble et exit 2 *)
   else let g = States.choose reachable in
   let reachable = States.remove g reachable in
+  (* Game.disp g; *)
   let game = Game.normalisation_full g in
   if States.mem game reached then
-    let reachable = States.remove game reachable in search_sol reachable reached
+    let reachable = States.remove game reachable in 
+    (* (if not (States.mem g reached) then 
+    let reached = States.add g reached;) Supprimer g de reached n'est pas utile car si on l'ajoute alors si on retombe dessus 
+    il sera supprimé de to_add_list avant d'entrer dans reachable, et si on ne le fait pas il sera peut-être ajouter à reachable 
+    mais apres avoir été normalisée on passera à l'état suivant car g normalisé aura déjà été observé. 
+    Verifier si on a déjà vu l'état normalisé est suiffisant*)
+    search_sol reachable reached
   else
     if Game.is_won game then
-      List.rev game.history (* On renvoit l'enchainement des coups (une list de tuple: (départ, arrivée) avec arrivée qui vaut: "[0-51]", "T", "V") *)
+      Some (List.rev game.history) (* On renvoit l'enchainement des coups (une list de tuple: (départ, arrivée) avec arrivée qui vaut: "[0-51]", "T", "V") *)
     else
       let new_reachable = add_reachable game reachable reached in search_sol new_reachable (States.add game reached)
+
+let rec write_moves file moves = 
+  match moves with 
+  | [] -> close_out file;
+  | move :: sub_moves -> 
+    (Printf.fprintf file "%i %s\n" (fst move) (snd move)); 
+    write_moves file sub_moves;

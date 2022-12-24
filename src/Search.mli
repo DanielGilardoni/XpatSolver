@@ -2,4 +2,9 @@
 module States : (Set.S with type elt = Game.gameStruct)
 
 val compare_games : Game.gameStruct -> Game.gameStruct -> int
-val search_sol : States.t -> States.t -> (int * string) list
+val set_reachable : States.t -> States.t -> Game.gameStruct list -> States.t 
+val add : Game.gameStruct -> string -> Game.gameStruct list -> Game.gameStruct list
+val add_reachable : Game.gameStruct -> States.t -> States.t -> States.t
+val search_sol : States.t -> States.t -> (int * string) list option
+
+val write_moves : out_channel -> (int * string) list -> unit
