@@ -30,10 +30,6 @@ let set_game_seed name =
   with _ -> failwith ("Error: <game>.<number> expected, with <game> in "^
                       "FreeCell Seahaven MidnightOil BakersDozen")
 
-
-
-(* TODO : La fonction suivante est à adapter et continuer *)
-
 let treat_game conf =
   let permut = XpatRandom.shuffle conf.seed in
   Printf.printf "Voici juste la permutation de graine %d:\n" conf.seed;
@@ -42,7 +38,7 @@ let treat_game conf =
   List.iter (fun n -> Printf.printf "%s " (Card.to_string (Card.of_num n))) permut;
   print_newline ();
   let game = Game.initGame conf.game permut in 
-  (* affichage game; *)
+  (* disp game; *)
   match conf.mode with 
   | Search s -> failwith "ToDo"
   | Check f ->
@@ -68,10 +64,10 @@ let treat_game conf =
             with _ ->
               (* Printf.printf "\n%s,%s\n" (Card.to_string (Card.of_num card1)) mot2; *)
           Printf.printf "%d\n" nb_move;
-          affichage game; *)
+          disp game; *)
           let new_game1 = normalisation_full game in
           (* Printf.printf "\n" *)
-          (* affichage new_game1; *)
+          (* disp new_game1; *)
           (* begin *)
           (* Printf.printf "%b\n" (rules new_game1 card1 mot2); *)
           match (rules new_game1 card1 mot2) with
@@ -80,31 +76,15 @@ let treat_game conf =
             let new_game2 = remove new_game1 card1 in 
             let new_game3 = move new_game2 card1 mot2 in
             (* Printf.printf "\nDebut move\n";
-            affichage new_game3; *)
+            disp new_game3; *)
+            (* Pour vérifier si l'historique *)
+            (* disp_history new_game3;
+            print_newline ();
+            print_newline (); *)
             treat_game_aux new_game3 file (nb_move + 1)
       with _ -> (Printf.printf "ECHEC %d" nb_move; exit 1)
         (* end *)
     in treat_game_aux game file 1
-
-  (* 
-  let line = try input_line file with End_of_file -> Printf.printf "SUCCES"; exit 0
-  in  
-  let mots = String.split_on_char ' ' line in
-  let card1 = int_of_string (List.nth mots 0) in
-  let mot2 = List.nth mots 1 in
-  let new_game1 = normalisation game in
-  match (rules new_game1 card1 mot2) with
-  | false -> Printf.printf "ECHEC %d" nb_move; exit 1
-  | true -> 
-    let new_game2 = remove new_game1 card1 in 
-    let new_game3 = move new_game2 card1 mot2
-     *)
-
-(* Corriger, afficher SUCCES, faire boucle sur normalisation...*)
-(*
-- Résoudre: ça lit un fichier -> liste de lignes -> pour chaque ligne split sur l'espace -> puis normalisation, rules, remove, move sur mot1 mot2
-*)
-(* Il faut mettre les rois en haut dans Seahaven *)
 
 let main () =
    Arg.parse
@@ -115,14 +95,5 @@ let main () =
     set_game_seed (* pour les arguments seuls, sans option devant *)
     "XpatSolver <game>.<number> : search solution for Xpat2 game <number>"; 
    treat_game config
-  (* let permut = XpatRandom.shuffle config.seed in
-  Printf.printf "Voici juste la permutation de graine %d:\n" config.seed;
-  List.iter (fun n -> print_int n; print_string " ") permut;
-  print_newline ();
-  List.iter (fun n -> Printf.printf "%s " (Card.to_string (Card.of_num n))) permut;
-  print_newline ();
-  let game = Game.initGame config.game permut;
-  affichage game;
-  exit 0 *)
 
 let _ = if not !Sys.interactive then main () else ()

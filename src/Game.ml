@@ -8,8 +8,8 @@ type gameStruct = {
   registers : Card.card option FArray.t;
   columns : Card.card list FArray.t;
   depots : Card.card list FArray.t;
+  history : (int * string) list;
 }
-
 
 let rank card =
   fst card
@@ -47,13 +47,14 @@ let initGameAux gameType nbReg cards cardsPerCol =
   let registers = FArray.make nbReg None in
   let columns = FArray.make (List.length cardsPerCol) [] in
   let depots = FArray.make 4 [] in
+  let history = [] in (* historique vide au début d'une partie *)
   let (columns, cards) = add_column columns cards cardsPerCol 0 in
   let registers = 
     match cards with
     | c1 :: c2 :: cards -> let reg1 = set registers 0 (Some (Card.of_num c1)) in
                            let reg2 = set reg1 1 (Some (Card.of_num c2)) in reg2
     | _ -> registers
-  in {name = gameType ; columns = columns ; registers = registers; depots = depots}
+  in {name = gameType ; columns = columns ; registers = registers; depots = depots; history = history}
 
 let initGame gameType cards =
   match gameType with
@@ -61,39 +62,44 @@ let initGame gameType cards =
   | Seahaven -> initGameAux Seahaven 4 cards (List.init 10 (fun x -> 5)) 
   | Midnight -> initGameAux Midnight 1 cards ((List.init 17 (fun x -> 3)) @ [1])
   | Baker -> let game = initGameAux Baker 1 cards (List.init 13 (fun x -> 4)) in
-    {name = gameType ; columns = (kings_on_back game.columns) ; registers = game.registers; depots = game.depots} (* On met les rois au fond dans chaque colonne *)
+    {name = gameType ; columns = (kings_on_back game.columns) ; registers = game.registers; depots = game.depots; history = game.history} (* On met les rois au fond dans chaque colonne *)
 
-let rec affichage_regs registers =
+let disp_history game =
+  List.iter (fun (a, b) -> Printf.printf "(%d, %s), " a b) game.history
+
+let rec disp_regs registers =
   match registers with 
   | [] -> ()
-  | None :: sub -> affichage_regs sub
+  | None :: sub -> disp_regs sub
   | Some card :: sub ->
     Printf.printf "%s ;%!" (Card.to_string card);
-    affichage_regs sub
+    disp_regs sub
 
-let rec affichage_list list =
+let rec disp_list list =
   match list with 
   | [] -> ()
   | card :: sub_list ->
     Printf.printf "%s ;%!" (Card.to_string card);
-    affichage_list sub_list
+    disp_list sub_list
 
-let rec affichage_list_list col_or_depots = 
+let rec disp_list_list col_or_depots = 
   match col_or_depots with
   | [] -> ()
-  | col :: sub -> Printf.printf "\n | "; affichage_list col; affichage_list_list sub 
+  | col :: sub -> Printf.printf "\n | "; disp_list col; disp_list_list sub 
 
-
-let affichage game = 
+let disp game = 
+  Printf.printf "DEBUT AFFICHAGE GAME\n\n";
   let registers_list = FArray.to_list game.registers in
   let columns_list = FArray.to_list game.columns in 
   let depots_list = FArray.to_list game.depots in
   Printf.printf "Registers : \n";
-  affichage_regs registers_list;
-  Printf.printf "\nColumns : \n";
-  affichage_list_list columns_list;
-  Printf.printf "\nDepots : \n";
-  affichage_list_list depots_list;
+  disp_regs registers_list;
+  Printf.printf "\n\nColumns : \n";
+  disp_list_list columns_list;
+  Printf.printf "\n\nDepots : \n";
+  disp_list_list depots_list;
+  Printf.printf "\n\nHistory :\n";
+  disp_history game
 
 (* Ecriture des fonctions pour la partie I/2, Peut qu'il faudra les mettres ailleurs plus tard *)
 
@@ -166,9 +172,9 @@ let remove_in_reg regs card =
 
 let remove game card = 
   try let reg = remove_in_reg game.registers card in
-    {name = game.name; registers = reg; columns = game.columns; depots = game.depots}
+    {name = game.name; registers = reg; columns = game.columns; depots = game.depots; history = game.history}
   with No_Index -> let col = remove_in_col game.columns card in
-    {name = game.name; registers = game.registers; columns = col; depots = game.depots}
+    {name = game.name; registers = game.registers; columns = col; depots = game.depots; history = game.history}
 
 let compare_cards_opt card1 card2 = 
   match card1 with 
@@ -198,17 +204,18 @@ let add_to_col columns card card2 =
 
 (* Verifier si card_num2 vaut bien [1,51] AVANT *)
 let move game card_num location =
-  let card2 = 
-    try int_of_string(location) with _ -> 99 in
+  let card2 = try int_of_string(location) with _ -> 99 in
+  (* On ajoute le dernier coup dans l'historique *)
+  let new_history = (card_num, location) :: game.history in
   match location with 
-  | "T" -> let reg = add_to_reg game.registers card_num 
-           in {name = game.name; registers = reg; columns = game.columns; depots = game.depots}
+  | "T" -> let reg = add_to_reg game.registers card_num
+           in {name = game.name; registers = reg; columns = game.columns; depots = game.depots; history = new_history}
                            
   | "V" -> let columns = add_to_col game.columns card_num 99
-           in {name = game.name; registers = game.registers; columns = columns; depots = game.depots}
+           in {name = game.name; registers = game.registers; columns = columns; depots = game.depots; history = new_history}
   
   | _ when card2 >= 0 && card2 < 52 -> let columns = add_to_col game.columns card_num card2
-           in {name = game.name; registers = game.registers; columns = columns; depots = game.depots}
+           in {name = game.name; registers = game.registers; columns = columns; depots = game.depots; history = new_history}
     
   | _ -> raise Not_found
 
@@ -284,10 +291,10 @@ let normalisation game =
       try
         let game_temp = remove game (Card.to_num card) in
         (* Printf.printf "after remove"; *)
-        (* affichage game_temp; *)
+        (* disp game_temp; *)
          (* ça modifie pas is_normalise on crée une nouvelle variable à chaque fois *)
         let new_depots = add_to_depots game_temp.depots card (Card.num_of_suit (suit card)) in 
-        let new_game = {name = game.name; registers = game_temp.registers; columns = game_temp.columns; depots = new_depots} in
+        let new_game = {name = game.name; registers = game_temp.registers; columns = game_temp.columns; depots = new_depots; history = game.history} in
         normalisation_aux new_game sub_cards false
       with _ -> normalisation_aux game sub_cards is_normalise
     in normalisation_aux game wanted_cards true

@@ -35,4 +35,4 @@ val foldi : (int -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 (* Fonctions pour copier puis comparer deux tableaux *)
 
 val copy : 'a t -> 'a t
-val compare : 'a t -> 'a t -> bool
+val compare : 'a t -> 'a t -> int

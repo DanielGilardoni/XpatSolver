@@ -1,11 +1,13 @@
 (* Fonctions pour résoudre la version de FreeCell *)
 
 type game = Freecell | Seahaven | Midnight | Baker
+
 type gameStruct = {
   name : game;
   registers : Card.card option FArray.t;
   columns : Card.card list FArray.t;
   depots : Card.card list FArray.t;
+  history : (int * string) list;
 }
 
 val add : Card.card list -> int list -> int -> (Card.card list * int list)
@@ -22,4 +24,5 @@ val normalisation : gameStruct-> gameStruct * bool
 val normalisation_full : gameStruct -> gameStruct
 
 val is_won : gameStruct -> bool
-val affichage : gameStruct -> unit
+val disp : gameStruct -> unit
+val disp_history : gameStruct -> unit

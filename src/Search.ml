@@ -1,15 +1,19 @@
 
-
 (* Attention aux registres. Ils peuvent contenir les mêmes cartes pas dans
    le meme ordre. Il faut les trier peut être avant ? *)
-let compare_games (game1 : Game.gameStruct) (game2 : Game.gameStruct) : bool = 
-  if FArray.compare game1.registers game2.registers then
-    FArray.compare game1.columns game2.columns
+let compare_games (game1 : Game.gameStruct) (game2 : Game.gameStruct) : int = 
+  if (FArray.compare game1.registers game2.registers) = 0 then
+    FArray.compare game1.columns game2.columns (* renvoit 0 si ils sont égaux. Sinon un nombre != 0 *)
   else
-    false
+    1 (* différent *)
 
-(* définir le type state et la fonction compare_state auparavant *)
-module States = Set.Make (struct type t = gameStruct let compare = compare_games end)
+module States = Set.Make (struct type t = Game.gameStruct let compare = compare_games end)
+
+(* Permet de convertir une liste de gameStruct en States *)
+let set_of_list (games : Game.gameStruct list) =
+  let set = States.empty in
+  List.iter (fun x -> let set = States.add x set in ()) games;
+  set
 
 (* On renvoie to_add_list qui contient tous les états atteignables depuis game, en deplaçant une carte dans un registre vide *)
 (* let add_in_regs game = 
@@ -82,11 +86,11 @@ module States = Set.Make (struct type t = gameStruct let compare = compare_games
 let add game location to_add_list = 
   let rec add_aux card1_num to_add_list = 
     if card1_num >= 52 then to_add_list
-    else match (rules game card1_num location) with
-    | False -> add_aux (card1_num + 1) to_add_list
-    | True -> 
-      let new_game = remove game card1_num in
-      let new_game = move new_game card1_num location in 
+    else match (Game.rules game card1_num location) with
+    | false -> add_aux (card1_num + 1) to_add_list
+    | true -> 
+      let new_game = Game.remove game card1_num in
+      let new_game = Game.move new_game card1_num location in 
       add_aux (card1_num + 1) (new_game :: to_add_list)
   in add_aux 0 to_add_list
 
@@ -96,25 +100,42 @@ let add_reachable game reachable reached =
   let to_add_list = add game "V" to_add_list in
   (* On va faire une fonction qui calcule les cartes ajoutables à une colonne non vide en fct du type de jeu 
      Puis on ajoute dans une liste de tuple de la forme (carte_attendues carte_destination) pour chaque col non vide 
-     Puis on fait match rules game (fst tuple) (snd tuple); remove; move...
+     Puis on fait match Game.rules game (fst tuple) (snd tuple); remove; move...
      Sinon plus couteux, mais on peut utiliser add avec comme location la carte au bout de chaque colonne non vide *)
+
+  (* Pour l'instant, on fait la methode plus couteuse pour faire un premier test *)
+  (* On convertit le tableau en liste de liste *)
+  let columns = FArray.to_list game.columns in
+
+  let rec check_cols_and_add cols to_add_list =
+    match cols with (* On récupère la premiere colonne, puis la 2ème etc... *)
+    | [] -> to_add_list
+    | col :: sub_cols -> match col with (* On récupère la carte au bout de la colonne. Si colonne vide, on skip *)
+                          | [] -> check_cols_and_add sub_cols to_add_list
+                          | card :: _ -> let to_add_list = add game (string_of_int (Card.to_num card)) to_add_list in
+                                        check_cols_and_add sub_cols to_add_list
+  in let to_add_list = check_cols_and_add columns to_add_list
+  in set_of_list to_add_list
 
 (*
 -possible ? -> si reg vide alors tt deb de col. Si col vide alors tt reg ou tt autre deb col de taille > 1.
               sinon voir cartes attendues pour chaque col et voir si accessible
--rules (t cho) -> decouper etapes prec en 3 fct qu'on appel en fct de mode de jeu et en precisant mode si besoin
+-Game.rules (t cho) -> decouper etapes prec en 3 fct qu'on appel en fct de mode de jeu et en precisant mode si besoin
 -remove 
 -move 
 -reached ?
 -add  *)
 
 (* Recherche exhaustive ou non ? *)
-let search_sol (reachable : States) (reached : States) =
+let rec search_sol reachable reached =
   if States.is_empty reachable then (Printf.printf "Echec"; exit 1) (* Si exhaustive alors Insoluble et exit 2 *)
   else let g = States.choose reachable in
   let reachable = States.remove g reachable in
-  let game = normalisation_full g in
+  let game = Game.normalisation_full g in
   if States.mem game reached then
     let reachable = States.remove game reachable in search_sol reachable reached
   else
-    let new_reachable = add_reachable game reachable reached in search_sol new_reachable (States.add game reached) 
+    if Game.is_won game then
+      List.rev game.history (* On renvoit l'enchainement des coups (une list de tuple: (départ, arrivée) avec arrivée qui vaut: "[0-51]", "T", "V") *)
+    else
+      let new_reachable = add_reachable game reachable reached in search_sol new_reachable (States.add game reached)
