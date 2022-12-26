@@ -135,7 +135,7 @@ let add_reachable game reachable reached =
 -add  *)
 
 let heuristic score best_score =
-  best_score - score < 10
+  (best_score - score) < 0
 
 (* Recherche exhaustive ou non ? *)
 let rec search_sol reachable reached best_score heuristic =
@@ -151,34 +151,39 @@ let rec search_sol reachable reached best_score heuristic =
       -1
   in
 
-  if (States.mem game reached) || (best_score > 0 && not (heuristic game_score best_score)) then
+  if (States.mem game reached) || (best_score >= 0 && not (heuristic game_score best_score)) then
+    (Printf.printf "%i" best_score;
     let reachable = States.remove game reachable in 
+    Game.disp (States.choose reachable);
       (* (if not (States.mem g reached) then 
       let reached = States.add g reached;) Supprimer g de reached n'est pas utile car si on l'ajoute alors si on retombe dessus 
       il sera supprimé de to_add_list avant d'entrer dans reachable, et si on ne le fait pas il sera peut-être ajouter à reachable 
       mais apres avoir été normalisée on passera à l'état suivant car g normalisé aura déjà été observé. 
       Verifier si on a déjà vu l'état normalisé est suiffisant*)
-    search_sol reachable reached best_score heuristic
+    search_sol reachable reached best_score heuristic)
   else
     if Game.score game = 52 then
       Some (List.rev game.history) (* On renvoit l'enchainement des coups (une list de tuple: (départ, arrivée) avec arrivée qui vaut: "[0-51]", "T", "V") *)
     else
-      if best_score >= 0 && best_score < game_score then
-        let best_score = game_score in 
-        let new_reachable = add_reachable game reachable reached in 
-        search_sol new_reachable (States.add game reached) best_score heuristic
-      else
-        (* TODO: ... *)
+      let best_score = 
+        if (best_score >= 0 && best_score < game_score) then
+          game_score
+        else 
+          best_score
+      in 
+      let new_reachable = add_reachable game reachable reached in 
+      search_sol new_reachable (States.add game reached) best_score heuristic
 
 let exhaustive game =
   let reachable = States.add game States.empty in
-    let reached = States.empty in 
-    search_sol reachable reached -1 heuristic
+  let reached = States.empty in 
+  search_sol reachable reached (-1) heuristic
   
+(* Print echec et exit 1 dans ce cas *)
 let non_exhaustive game =
   let reachable = States.add game States.empty in
   let reached = States.empty in
-  search reachable reached 0 heuristic
+  search_sol reachable reached 0 heuristic
 
 let rec write_moves file moves = 
   match moves with 

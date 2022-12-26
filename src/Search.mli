@@ -7,6 +7,7 @@ val add : Game.gameStruct -> string -> Game.gameStruct list -> Game.gameStruct l
 val add_reachable : Game.gameStruct -> States.t -> States.t -> States.t
 val search_sol : States.t -> States.t -> int -> (int -> int -> bool) -> (int * string) list option
 
+val exhaustive : Game.gameStruct -> (int * string) list option
 val non_exhaustive : Game.gameStruct -> (int * string) list option
 
 val write_moves : out_channel -> (int * string) list -> unit
