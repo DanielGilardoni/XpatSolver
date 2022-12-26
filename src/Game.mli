@@ -26,3 +26,4 @@ val normalisation_full : gameStruct -> gameStruct
 val is_won : gameStruct -> bool
 val disp : gameStruct -> unit
 val disp_history : gameStruct -> unit
+val score : gameStruct -> int

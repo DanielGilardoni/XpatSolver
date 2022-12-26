@@ -348,5 +348,11 @@ let is_won game =
     else
       are_depots_complete game.depots
 
-
-
+let score game =
+  let depots_list = FArray.to_list game.depots in
+  let rec score_aux depots total_score =
+    match depots with
+    | [] -> total_score
+    | l :: subDepots -> let len = List.length l
+                        in score_aux subDepots (total_score + len)
+  in score_aux depots_list 0

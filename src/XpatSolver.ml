@@ -43,10 +43,7 @@ let treat_game conf =
   match conf.mode with 
   | Search s -> 
     let file = open_out s in
-    let reachable = States.empty in 
-    let reachable = States.add game reachable in
-    let reached = States.empty in 
-    let sol = search_sol reachable reached in
+    let sol = non_exhaustive game in
     begin
     match sol with 
     | None -> (close_out file; Printf.printf "INSOLUBLE"; exit 2)

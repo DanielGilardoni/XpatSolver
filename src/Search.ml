@@ -134,26 +134,51 @@ let add_reachable game reachable reached =
 -reached ?
 -add  *)
 
+let heuristic score best_score =
+  best_score - score < 10
+
 (* Recherche exhaustive ou non ? *)
-let rec search_sol reachable reached =
+let rec search_sol reachable reached best_score heuristic =
   if States.is_empty reachable then None (* Si exhaustive alors Insoluble et exit 2 *)
   else let g = States.choose reachable in
   let reachable = States.remove g reachable in
   (* Game.disp g; *)
   let game = Game.normalisation_full g in
-  if States.mem game reached then
+  let game_score = 
+    if best_score >= 0 then
+      Game.score game 
+    else
+      -1
+  in
+
+  if (States.mem game reached) || (best_score > 0 && not (heuristic game_score best_score)) then
     let reachable = States.remove game reachable in 
-    (* (if not (States.mem g reached) then 
-    let reached = States.add g reached;) Supprimer g de reached n'est pas utile car si on l'ajoute alors si on retombe dessus 
-    il sera supprimé de to_add_list avant d'entrer dans reachable, et si on ne le fait pas il sera peut-être ajouter à reachable 
-    mais apres avoir été normalisée on passera à l'état suivant car g normalisé aura déjà été observé. 
-    Verifier si on a déjà vu l'état normalisé est suiffisant*)
-    search_sol reachable reached
+      (* (if not (States.mem g reached) then 
+      let reached = States.add g reached;) Supprimer g de reached n'est pas utile car si on l'ajoute alors si on retombe dessus 
+      il sera supprimé de to_add_list avant d'entrer dans reachable, et si on ne le fait pas il sera peut-être ajouter à reachable 
+      mais apres avoir été normalisée on passera à l'état suivant car g normalisé aura déjà été observé. 
+      Verifier si on a déjà vu l'état normalisé est suiffisant*)
+    search_sol reachable reached best_score heuristic
   else
-    if Game.is_won game then
+    if Game.score game = 52 then
       Some (List.rev game.history) (* On renvoit l'enchainement des coups (une list de tuple: (départ, arrivée) avec arrivée qui vaut: "[0-51]", "T", "V") *)
     else
-      let new_reachable = add_reachable game reachable reached in search_sol new_reachable (States.add game reached)
+      if best_score >= 0 && best_score < game_score then
+        let best_score = game_score in 
+        let new_reachable = add_reachable game reachable reached in 
+        search_sol new_reachable (States.add game reached) best_score heuristic
+      else
+        (* TODO: ... *)
+
+let exhaustive game =
+  let reachable = States.add game States.empty in
+    let reached = States.empty in 
+    search_sol reachable reached -1 heuristic
+  
+let non_exhaustive game =
+  let reachable = States.add game States.empty in
+  let reached = States.empty in
+  search reachable reached 0 heuristic
 
 let rec write_moves file moves = 
   match moves with 
