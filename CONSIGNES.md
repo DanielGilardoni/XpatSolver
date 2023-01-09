@@ -18,9 +18,10 @@ Votre dépôt git doit être hébergé par le serveur GitLab de l'UFR d'informat
 https://gaufre.informatique.univ-paris-diderot.fr
 Voir le fichier [GIT.md](GIT.md) pour plus de détails sur son usage.
 Aucun autre code ne sera pris en compte, même hébergé par un autre serveur.
-Votre dépôt doit être rendu **privé** dès sa création, avec accès uniquement
-aux membres du binôme et aux enseignants de ce cours (au minimum l'utilisateur
-`letouzey` comme Maintaineur).
+Votre dépôt doit être un "fork" du dépôt enseignant du projet, et doit être
+rendu **privé** dès sa création, avec accès uniquement aux membres du binôme
+et aux enseignants de ce cours (au minimum l'utilisateur `letouzey` comme
+Maintaineur).
 Tout code laissé en accès libre sur Gaufre ou ailleurs sera considéré
 comme une incitation à la fraude, et sanctionné.
 
@@ -62,7 +63,7 @@ formalité : il sera pris en compte dans l'évaluation.
    Documentez ensuite de façon précise la manière dont votre
    projet doit être compilé (normalement via dune) et exécuté (en donnant
    les options acceptées par votre programme). Pour ce projet, aucune
-   bibliothèques externes n'est autorisé a priori. Nous contacter si
+   bibliothèque externe n'est autorisée a priori. Nous contacter si
    cela vous semble problématique.
 
 4. (Découpage modulaire)

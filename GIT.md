@@ -32,8 +32,8 @@ pas encore ssh et les clés publiques/privées ssh, il est temps de s'y mettre !
 ### Création du dépôt
 
 Pour ce projet, nous vous fournissons quelques fichiers initiaux.
-Votre dépôt git sera donc un dérivé (ou "fork") du dépôt public du
-cours. En pratique:
+Votre dépôt git sera donc un dérivé (ou "fork") du dépôt enseignant du
+projet. En pratique:
 
   - L'un des membres de votre groupe se rend sur le dépôt git du projet
     https://gaufre.informatique.univ-paris-diderot.fr/pf5-profs/pf5-projet-2022
