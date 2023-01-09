@@ -1,20 +1,11 @@
 
-(* Attention aux registres. Ils peuvent contenir les mêmes cartes pas dans
-   le meme ordre. Il faut les trier peut être avant ? *)
-   let compare_games (game1 : Game.gameStruct) (game2 : Game.gameStruct) : int = 
-    (* Printf.printf "Je suis sur compares_game\n";
-    Game.disp_history game1;
-    Game.disp_history game2; *)
-    if (FArray.compare game1.registers game2.registers) = 0 then
-      let b = FArray.compare game1.columns game2.columns in (* renvoit 0 si ils sont égaux. Sinon un nombre != 0 *)
-      if b = 0 then
-        ((*Printf.printf "\ntrue\n";*)
-        b)
-      else
-        b
+  (* Fonction qui permet de comparer deux états. Renvoie 0 si ils sont égaux, sinon 1 ou -1 *)
+  let compare_games (game1 : Game.gameStruct) (game2 : Game.gameStruct) : int = 
+    let b = (FArray.compare game1.registers game2.registers) in
+    if b = 0 then
+      FArray.compare game1.columns game2.columns (* renvoit 0 si ils sont égaux. Sinon un nombre != 0 *)
     else
-      ((*Printf.printf "\nFalse\n";*)  
-      1) (* différent *)
+      b
   
   module States = Set.Make (struct type t = Game.gameStruct let compare = compare_games end)
   
@@ -31,72 +22,6 @@
       (* Si l'etat à déjà été vu ou est déjà dans les etats atteignables, on passe au suivant sinon on l'ajoute aux etats atteignables *)
       if (States.mem game reached) || (States.mem game reachable) then set_reachable reachable reached sub_games 
       else let reachable = (States.add game reachable) in set_reachable reachable reached sub_games
-  
-  (* On renvoie to_add_list qui contient tous les états atteignables depuis game, en deplaçant une carte dans un registre vide *)
-  (* let add_in_regs game = 
-    let rec add_in_regs_aux index to_add_list = 
-      if index >= FArray.length game.columns then 
-        to_add_list
-      else
-        let col = get game.columns index in
-        if List.length col = 0 then
-          add_in_regs_aux (index+1) to_add_list
-        else 
-          try let new_regs = add_to_reg game.registers (List.hd col)  (* Il manque de remove la carte *)
-              in let new_game = {name = game.name; registers = new_regs; columns = game.columns; depots = game.depots}
-              in add_in_regs_aux (index + 1) (new_game :: to_add_list)
-          with _ -> add_in_regs_aux (index + 1) to_add_list
-    in add_in_regs_aux 0 [] *)
-  
-  (* On ajoute à to_add_list tous les états atteignables depuis game en deplaçant une carte dans une colonne vide 
-     depuis un registre non vide*)
-  (* let add_in_empty_cols_from_regs game to_add_list = 
-    let rec add_aux index to_add_list =
-      if index >= FArray.length game.registers then to_add_list
-      else let card_opt = get game.registers index in 
-      match card_opt with
-      | None -> add_aux (index + 1) to_add_list
-      | Some card -> 
-        try let new_cols = add_to_col game.columns card 99
-                in let new_regs = remove (* Mais il faudrait remove avant, sauf qu'on sait pas si add va marcher vu qu'on fait un try*)
-                in let new_game = {name = game.name; registers = game.registers; columns = new_cols; depots = game.depots}
-                in add_aux (index + 1) (new_game :: to_add_list)
-            with _ -> add_aux (index + 1) to_add_list
-    in add_aux 0 to_add_list *)
-  
-  
-  
-  (* On "ajoute" (en realité c'est une nouvelle liste) à to_add_list tout les états atteignables depuis game 
-     en deplaçant une carte dans une colonne vide (depuis une autre colonne contenant au moins 2 cartes 
-     ou depuis un registre non vide (cas géré par add_in_empty_cols_from_regs) )  *)
-  (* let add_in_empty_cols game to_add_list =
-    match game.name with
-    | Baker -> to_add_list
-    | Midnight -> to_add_list
-    | _ -> 
-      if empty_col game.columns = None then to_add_list  (* Si on fait ça quel interet de faire try with ?*)
-      else let rec add_in_empty_cols_aux index to_add_list = 
-        if index >= FArray.length game.columns then 
-          add_in_empty_cols_from_regs game  (* Faut ajouter les cartes des registres *)
-        else 
-          let col = get game.columns index in
-          if List.length col < 2 then
-            add_in_empty_cols_aux (index+1) to_add_list
-          else 
-            try let new_cols = add_to_col game.columns (List.hd col) 
-                in let new_game = {name = game.name; registers = game.registers; columns = new_cols; depots = game.depots}
-                in add_in_empty_cols_aux (index + 1) (new_game :: to_add_list)
-            with _ -> add_in_empty_cols_aux (index + 1) to_add_list
-      in add_in_empty_cols_aux 0 to_add_list *)
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   (* Test si on peut deplacer toutes les cartes sur location, et si oui ajoute cet état à to_add_list
      C'est peut-être plus couteux mais c'est plus simple je crois que les fonctions au dessus *)
@@ -134,38 +59,17 @@
     in let to_add_list = check_cols_and_add columns to_add_list
     in let reachable = set_reachable reachable reached to_add_list in reachable
   
-  (*
-  -possible ? -> si reg vide alors tt deb de col. Si col vide alors tt reg ou tt autre deb col de taille > 1.
-                sinon voir cartes attendues pour chaque col et voir si accessible
-  -Game.rules (t cho) -> decouper etapes prec en 3 fct qu'on appel en fct de mode de jeu et en precisant mode si besoin
-  -remove 
-  -move 
-  -reached ?
-  -add  *)
-  
   let heuristic score best_score =
     (best_score - score) < 2
 
   
-  
-  (* Recherche exhaustive ou non ? *)
+  (* Recherche une solution: exhaustive si best_score=-1, non exhaustive sinon *)
   let rec search_sol reachable reached best_score heuristic =
-    (* if (States.cardinal reachable > 100) then (Printf.printf "lol"; None) else *)
-    if States.is_empty reachable then None (*Si exhaustive alors Insoluble et exit 2 *)
+    if States.is_empty reachable then None (* Si recherche exhaustive, la partie est insoluble et exit 2 *)
     else let g = States.choose reachable in
-    (* Printf.printf "Avant ggggggggg et Size : %i\n" (States.cardinal reachable); *)
-    (* let reachable = States.diff reachable (States.singleton g) in au lieu de remove *)
-    let reachable = States.filter (fun game -> compare_games g game != 0) reachable in 
-    (* Printf.printf "Après gggggggggggggggg et Size : %i\n" (States.cardinal reachable); *)
-    let listR1 = States.elements reachable in
-    (* Printf.printf "La Size: %i %i\n" (List.length listR1) (States.cardinal reachable); *)
-    (* if listR1 != [] then 
-      (let rec disp_list_games list =
-        match list with 
-        | [] -> ();
-        | game :: sub -> (Game.disp_history game; Printf.printf "||"; disp_list_games sub)
-      in disp_list_games listR1;); *)
-    (* Game.disp g; *)
+    
+    let reachable = States.remove g reachable in 
+
     let game = Game.normalisation_full g in
     let game_score = 
       if best_score >= 0 then
@@ -173,38 +77,9 @@
       else
         -1
     in
-    (* Printf.printf "%i %i\n" (best_score) (game_score); *)
-    (* Printf.printf "Avant mem et best score: %i\n" best_score; *)
     if (States.mem game reached) || (best_score >= 0 && not (heuristic game_score best_score)) then
-      (* (Printf.printf "Après mem:\n";
-        Printf.printf "score: %i\n" best_score;
-      Printf.printf "Avant remove:\n"; *)
-      (let reachable = States.remove game reachable in 
-      (* Printf.printf "Après remove:\n"; *)
-      (* Game.disp (States.choose reachable); *)
-  (* 
-      Printf.printf "Score: %i\n" best_score;
-  
-      let listR1 = States.elements reachable in
-      Printf.printf "1: %i\n" (List.length listR1);
-  
       let reachable = States.remove game reachable in
-  
-      let listR1 = States.elements reachable in
-      Printf.printf "2: %i\n" (List.length listR1);
-  
-      
-      let g = States.choose reachable in
-      let reachable = States.remove g reachable in
-      let g = States.choose reachable in
-      Printf.printf "Compare: %i\n" (compare_games g game); *)
-  
-        (* (if not (States.mem g reached) then 
-        let reached = States.add g reached;) Supprimer g de reached n'est pas utile car si on l'ajoute alors si on retombe dessus 
-        il sera supprimé de to_add_list avant d'entrer dans reachable, et si on ne le fait pas il sera peut-être ajouter à reachable 
-        mais apres avoir été normalisée on passera à l'état suivant car g normalisé aura déjà été observé. 
-        Verifier si on a déjà vu l'état normalisé est suiffisant*)
-      search_sol reachable reached best_score heuristic)
+      search_sol reachable reached best_score heuristic
     else
       if Game.score game = 52 then
         Some (List.rev game.history) (* On renvoit l'enchainement des coups (une list de tuple: (départ, arrivée) avec arrivée qui vaut: "[0-51]", "T", "V") *)
@@ -223,7 +98,6 @@
     let reached = States.empty in 
     search_sol reachable reached (-1) heuristic
     
-  (* Print echec et exit 1 dans ce cas *)
   let non_exhaustive game =
     let reachable = States.add game States.empty in
     let reached = States.empty in

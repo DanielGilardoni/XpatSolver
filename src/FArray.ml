@@ -130,4 +130,4 @@ let copy t =
 
 (* On fait une copie de t1 et t2. On les compare avec Stdlib.compare *)
 let compare t1 t2 =
-  (Stdlib.compare (copy t1) (copy t2))
+  Stdlib.compare (to_list t1) (to_list t2)
