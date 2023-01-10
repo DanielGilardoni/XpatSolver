@@ -14,6 +14,8 @@
     - [XPatRandom](#xpatrandom)
     - [Search](#search)
   - [Organisation du travail](#organisation-du-travail)
+    - [Répartition des tâches](#répartition-des-tâches)
+    - [Chronologie](#chronologie)
   - [Misc](#misc)
 
 
@@ -121,7 +123,12 @@ Voici ensuite les différentes étapes de l'algorithme:
 
 ### XPatRandom
 ---
-Le module `XPatRandom` contient la fonction **shuffle** qui va nous permettre de générer une permutation de carte pour une certaine graine (**seed**). Pour écrire cette fonction, nous avons suivi toutes les instructions données au début du fichier. Voici donc, une petite description de notre code:
+Le module `XPatRandom` contient la fonction **shuffle** qui va nous permettre de générer une permutation de carte pour une certaine graine (**seed**). Pour écrire cette fonction, nous avons suivi toutes les instructions données au début du fichier. Voici donc, une petite description de comment chaque étape à été implémenté:
+a) Pour créer les 55 première paires, on utilise une fonction **substraction** puis une fonction **create_pairs** (récursive terminale).
+b) On applique un `List.sort` pour trier les paires par ordre croissant. Ensuite, on utilise une fonction **split_list** pour couper la liste en deux morceaux. La fonction `FIFO.of_list` est finalement utilisé pour créer les deux **FIFO**.
+c) On crée une fonction **tirage** qui renvoie un triplet avec la valeur du tirage et les deux **FIFO** modifié.
+d) On crée une fonction **tirages** pour faire 165 tirages successifs (pour mélanger les deux **FIFO**). La fonction renvoie les deux **FIFO** modifiées.
+e) Enfin, on a une fonction **get_and_delete** qui prend une **liste** et un **index**. Elle renvoie un tuple avec l'élément placé à l'**index** et la liste vidé de cet élément. Pour finir, on a la fonction **gen_cards** qui va créer une liste avec 52 cartes dans l'ordre. Elle effectue ensuite 52 tirages successifs pour mélanger les cartes et créer la permutation finale.
 
 ### Search
 ---
@@ -151,8 +158,34 @@ Sinon, si le score de l'état est égal à 52 (ce qui signifie que toutes les ca
 Sinon, elle calcule tous les **états atteignables** en un coup à partir de l'**état actuel**, en utilisant la fonction **add_reachable** et appelle récursivement la fonction en lui passant ces nouveaux états atteignables. Le **best_score** est également mis à jour si besoin. 
 
 ## Organisation du travail
-- Répartition des tâches entre les membres au cours du temps
-- Brève chronologie de notre travail
+<!-- - Répartition des tâches entre les membres au cours du temps
+- Brève chronologie de notre travail -->
+### Répartition des tâches
+Pour ce projet, nous avons testé une nouvelle méthode de travail. Nous avons utilisé l'extension **liveshare** de **VSCode**. Elle permet de partager son environnement de travail et d'écrire, compiler et executer du code côte à côte. C'est pourquoi, nous avons écrit la plupart du temps le code ensemble. On peut d'ailleurs voir le **Co-authored** sur les commits, qui montre que le code à été écrit en **concurrence**.
+
+Cependant, on peut noter que :
+- La partie I avec le module **Game.ml** a été réalisé entièrement à deux
+- La fonction **shuffle** dans **XPatRandom.ml** a été écrite par Léopold Abignoli
+- Une grosse partie du module **Search.ml** a été réalisé par Daniel Gilardoni
+
+### Chronologie
+Nous avons commencé par créer le module **Game.ml**. Nous avons écrit dans cet ordre :
+
+1) La structure **GameStruct** (pour représenter une partie) et la fonction **initGame** pour l'initialiser.
+2) **get_reg**, **get_col**, **empty_reg**, **empty_col**. Ces fonctions permettent de récupérer l'index des cartes dans les **registres** et dans une **colonne**.
+3) **remove_in_col**, **remove_in_reg**, **add_to_reg**, **add_to_reg**. Elles permettent d'enlever/ajouter des cartes dans des registres/colonnes.
+4) **remove**, **move**, **rules**, **normalisation**. Voici les fonctions principales pour gérer une partie. On utilise alors les fonctions précédentes pour pouvoir enlever/déplacer des cartes entre les colonnes/registres. Vérifier si un mouvement est autorisé, normaliser le jeu...
+
+Ensuite, nous nous sommes occupés de la fonction **shuffle** du module **XpatRandom.ml**.
+
+Pour finir, nous avons codé le module **Search.ml**. Il contient les fonctions pour effectuer une recherche de solution. Elles ont été écrit dans cet ordre :
+
+1) Le module **States** et sa fonction pour comparer deux états, **compare_games** (compare deux **gameStruct**).
+2) **set_reachable**, **add**, **add_reachable**. Ces fonctions permettent de récupérer tous les états atteignables en un coup (en partant d'un certain état).
+3) **search_sol**, **write_moves**. Ces fonctions permettent de faire une recherche **exhaustive** ou non. On obtient alors la liste des coups pour terminer une partie et on écrit le résultat dans un fichier (**write_moves**).
+4) **exhaustive**, **non_exhaustive**, **heuristic**. Permettent d'appeler **search_sol** avec certains paramètres et d'effectuer la recherche voulue.
+
+On a finalement modifié **treat_game** de **XpatSolver.ml** pour pouvoir executer les fonctions **exhaustive** et **non_exhaustive**.
 
 ## Misc
-Remarques, suggestions, questions...
+A travers ce projet, nous avons essayé d'écrire le code le plus lisible possible. De plus, toutes nos fonctions ont été écrite en **récursion terminale**.
