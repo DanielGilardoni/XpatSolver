@@ -82,6 +82,62 @@ Pour notre projet, nous avons eu besoin de créer plusieurs modules. Notamment u
 
 ### Game
 ---
+Le module `Game` contient toutes les fonctions pour modéliser et jouer une partie de solitaire parmis les jeux demandés.
+Il contient aussi le type gameStruct qui représente un état d'une partie.
+Le type gameStruct est constitué :
+- d'un FArray de Card option pour les registres. A la creation de l'état le nombre de registres est fixée et le tableau contient uniquement des None si il n'y pas de cartes dans les registres.
+- de deux FArray de list de Card pour les colonnes et les dépots. Les listes de cartes représentent chacune une colonne.
+- D'une list de tuple de la forme (int * string) pour représenter l'historique des deplacements, avec une liste de couple de mots, le premier représentant la carte deplacée et le second la location où la carte à été déplacée.
+
+Voici une description des différentes fonctions de notre module:
+
+**kings_on_back**: Trie une colonne pour récupérer dans une liste les rois avec **List.filter**, et dans une autres les autres cartes. Concatène ensuite ces 2 listes en mettant les rois au fond.
+La fonction fais cela pour chaque colonne grâce à **List.map**.  
+Elle renvoit un nouveau tableau de colonnes.
+
+**add**: Ajoute un nombre choisie de card d'une liste de card à une autre liste l. 
+Elle renvoie un tuple avec la liste obtenue et les card non ajoutées.
+
+**add_column**: Ajoute dans les colonnes du FArray columns passé en paramétre le nombre de card voulu pour chaque colonne.
+Le nombre de card souhaité est préciser dans la liste cardsPerCol. On utilise la fonction **add** pour chaque colonne. 
+On "met à jour" (crée un nouveau) le tableau de colonnes avec FArray.set pour chaque colonne aprés avoir ajouté les cartes.  
+Elle renvoie un tuple avec le nouveau tableau de colonnes et la liste de cards restantes.
+
+**initGame**: Initialise une partie (renvoie un gameStruct) en fonction du type de jeu souhaité en appelant **initGameAux**. Pour Baker on utilise aussi **kings_on_back**.
+
+**initGameAux**: Initialise et retourne un gameStruct en fonction des paramètres gameType, nbReg, cards et cardsPerCol donné.
+
+**disp**: Affiche le contenu d'un état en utilisant **disp_history**, **disp_regs**, **disp_list** et **disp_list_list** et **FArray.to_list**.
+
+Les fonctions **get_col** et **get_reg** permettent de récupérer l'index de la colonne ou du registre qui contient la carte dont le numéro est donné en paramètre.
+Les fonctions **empty_col** et **empty_reg** utilisent les 2 fonctions précédentes pour renvoyer l'index d'une colonne ou d'un registre vide.
+
+**remove**: Prends le numéro d'une carte et un état gameStruct et supprime la carte de l'état. On essaye de supprimer la carte des registres avec **remove_in_reg**. Si ça lève une exception alors grâce à un try with on utilise **remove_in_col**. Si la carte n'a pas été supprimé, la fonction lève une exception.
+
+Les fonctions **add_to_reg** et **add_to_col** sont utilisé pour essayer d'ajouter une carte dans un registre ou une colonne vide ou une carte se situant en haut d'une colonne. Sinon lève une exception.
+La fonction **add_to_depots** permet d'ajouter une carte dans un dépot.
+
+**move**: Prends un état, un numéro de carte et une chaine de caractére. Effectue si possible le déplacement de la carte correspondant au numéro vers un registre ou une colonne vide ou une autre carte en fonction de la chaine de caractéres. Elle utilise add_to_reg ou add_to_col et renvoie un nouvel état ou lève une exception. Il faut l'utiliser après avoir supprimer la carte que l'on déplace de la partie sinon la carte pourrait être en double dans la partie.
+
+**rules**: Vérifie si le deplacement d'une carte vers une colonne ou un registre vide ou une autre carte est autorisée en fonctions des régles propre à chaque type de jeu. Par exemple on ne peut pas ajouter une carte dans colonne vide dans MidnightOil. Si la carte est deplacée sur une autre carte on vérifie que son rang est bien directement inférieur et que sa couleur est en accord avec les régles du mode de jeu.
+
+**wanted_depot_cards**: Permet d'obtenir la liste des cartes qui peuvent être ajouter dans un dépot.
+Par exemple si le depot des cartes Coeur est vide alors l'As de Coeur peut être ajouter au depot.
+Renvoie une liste de Card option dans le même ordre que les depots, avec None si le depot est complet.
+
+**normalisation**: Utilise **wanted_depot_cards** pour obtenir la liste des cartes pouvant être ajoutée aux dépôts.
+Elle contient une fonction récursive auxiliaire qui va pour chaque carte de la liste, si elle est None continuer, sinon essayer de la supprimer avec **remove** et de l'ajouter aux dépôts avec **add_to_depots**.  
+Elle renvoie un tuple contenant l'état (nouveau si au moins une carte à été ajoutée aux dépôts) et un bool valant true si il n'y a eu aucune mise au dépôt et false sinon. Ce bool va être utile dans la fonction **normalisation_full**.
+
+**normalisation_full**: Elle va appeler **normalisation** puis continuer récursivement jusqu'à ce qu'aucune carte ne soit mise au dépôt, donc lorsque le bool retourné par **normalisation** soit true. Cela permet d'éviter d'oublier les cas où une mise au dépot permet de rendre accessible une carte qui peut à son tour être mise au dépôt.
+Cette fonction renvoie l'état de la partie normalisée.  
+
+**is_won**: Elle vérifie en détail si la partie est gagnée ou non. Elle utilise **is_empty** et **is_empty_reg** pour vérifier si les colonnes et registres sont bien vides. 
+Puis **are_depot_complete** va vérifier que toutes les cartes sont dans les dépots et dans le bon ordre en utilisant **is_depot_complete** sur chaque dépôt. 
+Elle renvoit un bool.
+On aurait pu se contenter de vérifier qu'il y avait 52 cartes dans les dépôts, mais ainsi on s'assure qu'il n'y a pas eu d'erreurs.
+
+**score**: Elle renvoie le nombre de cartes dans les dépôts, ce qui est donc le score de la partie.
 
 ### XPatSolver
 ---
