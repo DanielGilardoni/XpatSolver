@@ -4,6 +4,10 @@
 - [Rapport XPatSolver](#rapport-xpatsolver)
   - [Identifiants](#identifiants)
   - [Fonctionnalités](#fonctionnalités)
+    - [Simuler une partie](#simuler-une-partie)
+    - [Vérification d'une solution existante](#vérification-dune-solution-existante)
+    - [Recherche de solutions](#recherche-de-solutions)
+    - [Extensions](#extensions)
   - [Compilation et exécution](#compilation-et-exécution)
     - [Compilation](#compilation)
     - [Execution](#execution)
@@ -34,6 +38,26 @@
    - extensions éventuelles
    - éventuellement parties non réalisées ou encore non fonctionnelles. -->
 
+### Simuler une partie
+<!-- I.1 État initial d'une partie, représentation des états
+I.2 Valider un fichier solution
+I.3 Création de la permutation -->
+Ce projet prend en compte plusieurs variantes de **Solitaire** telles que **Freecell**, **Seahaven**, **Baker's** **Dozen**, **Midnight oil**. Une partie de **Solitaire** est représentée par le type **GameStruct** qui contient le nom du jeu, les registres, colonnes, dépôts et l'historique des coups. Toutes les fonctions pour simuler une partie de **Solitaire** sont définies dans le module [Game.ml](#game)
+
+### Vérification d'une solution existante
+Avec ce projet, vous pouvez vérifier qu'un fichier solution résout bien une partie de **Solitaire**. Pour cela, il faudra utiliser l'option `-check` suivi du nom de votre fichier. Vous allez également avoir besoin du type de **Solitaire** et d'une **graine** Je vous invite à voir la section [Execution](#execution) pour avoir plus d'informations. Vous pouvez également consulter la section [XpatSolver](#xpatsolver) pour comprendre comment nous avons implémenté cette partie du code.
+
+On notera que notre projet valide tous les tests de la partie I.
+
+### Recherche de solutions
+Enfin, nous avons implémenté aussi la recherche d'une solution. Pour cela, il suffit à l'utilisateur de préciser l'option `-search` suivi du nom d'un fichier (pour écrire la solution). Bien sûr, il faut également préciser le type de **Solitaire** que vous voulez résoudre accompagné d'une **graine**. Pour plus d'informations, vous pouvez consulter la section [Execution](#execution).
+
+A travers ce projet, nous avons implémenter une recherche **exhaustive** et **non_exhaustive**. Cependant, la recherche **non_exhaustive** semble ne pas fonctionner à tous les coups. C'est pourquoi nous utilisons la méthode **exhaustive** par défaut pour résoudre une partie. On notera que la plupart des tests de la partie II semblent fonctionner. Seuls quelques tests ne passent pas pour cause de **timeout**.
+
+Pour plus d'informations sur notre implémentation, nous vous invitons à consulter la section sur notre module [Search](#search)
+
+### Extensions
+Nous avons fait le maximum pour realiser le sujet en entier. Cependant, nous n'avons pas eu le temps de rajouter des extensions.
 
 ## Compilation et exécution
 ---
