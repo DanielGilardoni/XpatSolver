@@ -9,6 +9,7 @@
     - [Execution](#execution)
   - [Découpage modulaire](#découpage-modulaire)
     - [Game](#game)
+    - [XPatSolver](#xpatsolver)
     - [XPatRandom](#xpatrandom)
     - [Search](#search)
   - [Organisation du travail](#organisation-du-travail)
@@ -76,15 +77,18 @@ Pour notre projet, nous avons eu besoin de créer plusieurs modules. Notamment u
 ### Game
 ---
 
+### XPatSolver
+---
+
 ### XPatRandom
 ---
 
 ### Search
 ---
 Le module `Search` contient toutes les fonctions pour effectuer une recherche de solutions. Il nous permet d'effectuer une recherche **exhaustive** et **non-exhaustive** parmis tous les jeux de Solitaire compatibles. Voici une description des différentes fonctions de notre module:
-- **compare_games g1 g2**: Cette fonction nous permet de comparer deux **gameStruct** (deux états d'une partie). Elle utilise notamment la fonction **FArray.compare** qui permet de comparer les tableaux de *registres* et *colonnes*. La fonction **FArray.compare** utilise elle même **Stdlib.compare** (elle convertie d'abord les FArray en listes).
+- **compare_games**: Cette fonction nous permet de comparer deux **gameStruct** (deux états d'une partie). Elle utilise notamment la fonction **FArray.compare** qui permet de comparer les tableaux de *registres* et *colonnes*. La fonction **FArray.compare** utilise elle même **Stdlib.compare** (elle convertie d'abord les FArray en listes).
 
-- **States***: Le module **States** est une implementation de l'interface **Set** où les éléments sont de type **Game.gameStruct** (état d'une partie) et la fonction de comparaison est **compare_games**.
+- **States**: Le module **States** est une implementation de l'interface **Set** où les éléments sont de type **Game.gameStruct** (état d'une partie) et la fonction de comparaison est **compare_games**.
 
 - **set_of_list**: Permet de convertir une liste d'états en **States** (Set).
 

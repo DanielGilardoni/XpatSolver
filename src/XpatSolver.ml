@@ -43,13 +43,13 @@ let treat_game conf =
   match conf.mode with 
   | Search s -> 
     let file = open_out s in
-    let sol = non_exhaustive game in
+    let sol = exhaustive game in
     begin
     match sol with 
     | None -> (close_out file; Printf.printf "INSOLUBLE"; exit 2)
     | Some moves ->
       (write_moves file moves;
-      Printf.printf "SUCCESS"; exit 0)
+      Printf.printf "SUCCES"; exit 0)
     end
 
   | Check f ->
