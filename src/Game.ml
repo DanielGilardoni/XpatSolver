@@ -136,6 +136,7 @@ let get_col columns card_num =
                          | _ -> get_col_aux sub_cols (index+1)
   in get_col_aux col_list 0
 
+(* Renvoie l'index d'une colonne vide *)
 let empty_col columns = 
   get_col columns 99
 
@@ -155,7 +156,8 @@ let get_reg registers card_num =
 let empty_reg registers =
   get_reg registers 99
 
-let remove_in_col cols card =
+(* Supprime la carte card du tableau de liste cols *)
+let remove_in_col cols card = 
   let index = get_col cols card in
   match index with
   | None -> raise No_Index
@@ -164,17 +166,20 @@ let remove_in_col cols card =
               | [] -> raise Empty_Stack
               | _ :: sl -> set cols i sl
 
+
 let remove_in_reg regs card =
   let index = get_reg regs card in
   match index with 
   | None -> raise No_Index
   | Some i -> set regs i None
 
+(* Supprime la carte de l'état sinon lève une exception *)
 let remove game card = 
   try let reg = remove_in_reg game.registers card in
     {name = game.name; registers = reg; columns = game.columns; depots = game.depots; history = game.history}
   with No_Index -> let col = remove_in_col game.columns card in
     {name = game.name; registers = game.registers; columns = col; depots = game.depots; history = game.history}
+
 
 let compare_cards_opt card1 card2 = 
   match card1 with 
@@ -183,6 +188,7 @@ let compare_cards_opt card1 card2 =
                | None -> 1
                | Some c2 -> if (Card.to_num c1) < (Card.to_num c2) then -1 else 1
 
+(* Permet d'ajouter une carte à un registre vide *)
 let add_to_reg registers card =
   if (FArray.length registers) = 1 then 
     raise No_Register;
@@ -194,6 +200,7 @@ let add_to_reg registers card =
                   let sort_regs = List.sort compare_cards_opt reg_list in
                   FArray.of_list sort_regs
 
+(* Permets d'ajouter une carte à une colonne *)
 (* Si card2 = 99, alors get_col renvoie l'index de la premiere colonne vide. *)
 let add_to_col columns card card2 =
   let index = get_col columns card2 in
@@ -202,6 +209,7 @@ let add_to_col columns card card2 =
   | Some i -> let col = get columns i in
               set columns i ((Card.of_num card) :: col)
 
+(* Deplace une carte vers location, ou lève une exception *)
 (* Verifier si card_num2 vaut bien [1,51] AVANT *)
 let move game card_num location =
   let card2 = try int_of_string(location) with _ -> 99 in
@@ -219,6 +227,8 @@ let move game card_num location =
     
   | _ -> raise Not_found
 
+(* Verifie que les régles du solitaire et du type de jeu sont respecté, 
+   c'est-à-dire si le déplacement est possible et autorisé *)
 let rules game card_num location =
   if (get_col game.columns card_num) = None && (get_reg game.registers card_num) = None then false
   else
@@ -260,6 +270,7 @@ let rules game card_num location =
 
     | _ -> false
 
+(* Permet d'obtenir la liste des cartes qui peuvent être ajouter dans un dépot *)
 let wanted_depot_cards depots = 
   let depots_list = FArray.to_list depots in
   let rec wanted_aux l1 l2 suit_num =
@@ -272,6 +283,7 @@ let wanted_depot_cards depots =
            in wanted_aux sl (card :: l2) (suit_num + 1)
     in wanted_aux depots_list [] 0
 
+(* Ajoute card dans le depot d'index index *)
 let add_to_depots depots card index =
   let depot = get depots index in
   set depots index (card :: depot)
@@ -279,6 +291,8 @@ let add_to_depots depots card index =
 let disp_card_num card = 
   Printf.printf "Normalise: %s\n" (Card.to_string card)
 
+(* Fais la normalisation de la partie en testant une fois maximum si une carte peut être 
+   mise au dépôt *)
 let normalisation game =
   let wanted_cards = wanted_depot_cards game.depots in
   let rec normalisation_aux game cards is_normalise =
@@ -290,20 +304,20 @@ let normalisation game =
       | Some card ->
       try
         let game_temp = remove game (Card.to_num card) in
-        (* Printf.printf "after remove"; *)
-        (* disp game_temp; *)
-         (* ça modifie pas is_normalise on crée une nouvelle variable à chaque fois *)
         let new_depots = add_to_depots game_temp.depots card (Card.num_of_suit (suit card)) in 
         let new_game = {name = game.name; registers = game_temp.registers; columns = game_temp.columns; depots = new_depots; history = game.history} in
         normalisation_aux new_game sub_cards false
       with _ -> normalisation_aux game sub_cards is_normalise
     in normalisation_aux game wanted_cards true
 
+(* Fais la normalisation compléte d'une partie en faisant une mise au dépôt 
+   tant que c'est possible *)
 let rec normalisation_full game = 
   (* Printf.printf "\n y \n"; *)
   let normalise = normalisation game in
-  if snd normalise then fst normalise else normalisation_full (fst normalise)
+  if snd normalise then fst normalise else normalisation_full (fst normalise) 
 
+(* Renvoie true si tous le dépôt est complet et dans le bon ordre *)
 let is_depot_complete depot suit_num = 
   let rec is_depot_complete_aux sub_depot index =
     begin
@@ -319,7 +333,8 @@ let is_depot_complete depot suit_num =
         else false
     end
   in is_depot_complete_aux depot 0
-      
+
+(* Renvoie true si tous les dépôts sont complets *)
 let are_depots_complete depots = 
   let rec are_depots_complete_aux index =
     if index = 4 then true else 
@@ -327,16 +342,19 @@ let are_depots_complete depots =
       if (is_depot_complete depot_i index) then are_depots_complete_aux (index+1) else false
   in are_depots_complete_aux 0
 
+(* Renvoie true si tous les registres sont vides *)
 let is_empty_reg reg =
   match reg with
   | [] -> true
   | reg -> (List.filter (fun x -> x != None) reg) = []
 
+(* Renvoie true si toutes les colonnes sont vides *)
 let rec is_empty columns =
   match columns with 
   | [] -> true
   | reg_o_col :: sub -> if empty reg_o_col then is_empty sub else false
 
+(* Vérifie en détail si la partie est gagnée ou non *)
 let is_won game = 
   let registers_list = FArray.to_list game.registers in
   if not (is_empty_reg registers_list) then
@@ -348,6 +366,7 @@ let is_won game =
     else
       are_depots_complete game.depots
 
+(* Renvoie le nombre de cartes dans les dépôts *)
 let score game =
   let depots_list = FArray.to_list game.depots in
   let rec score_aux depots total_score =
