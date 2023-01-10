@@ -38,9 +38,20 @@
     in add_aux 0 to_add_list
   
   (* Ajoute tous les états de partie atteignables en un coup depuis game à reachable, sauf si ils appartiennent à reached *)
-  let add_reachable game reachable reached =
-    let to_add_list = add game "T" [] in
-    let to_add_list = add game "V" to_add_list in
+  let add_reachable (game : Game.gameStruct) reachable reached =
+    let to_add_list = 
+      if (game.name = Baker) then 
+        []
+      else
+        add game "T" []
+    in
+
+    let to_add_list = 
+      if (game.name = Midnight) || (game.name = Baker) then 
+        to_add_list
+      else
+        add game "V" to_add_list
+    in
 
     (* On convertit le tableau en liste de liste *)
     let columns = FArray.to_list game.columns in
