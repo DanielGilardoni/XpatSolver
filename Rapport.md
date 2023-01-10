@@ -223,7 +223,7 @@ Le module `Search` contient toutes les fonctions pour effectuer une recherche de
 
 - **add**: Prend en entrée un **état** de jeu de Solitaire (**Game.gameStruct**), une destination ("T" pour une **colonne vide**, "V" pour les **registres**, ou une carte correspondant à une colonne) et une liste d'états. Elle calcule tous les états de jeu atteignables en déplaçant une carte vers la destination spécifiée et les ajoute à la liste des états.
 
-- **add_reachable**: Prend en entrée un **état** de jeu de Solitaire, un ensemble d'états atteignables (**reachable**) et un ensemble de d'états déjà atteints (**reached**). Elle calcule tous les états atteignables en un coup à partir de l'état donné et les ajoute à l'ensemble de parties atteignables, à moins qu'ils ne soient déjà présents dans l'ensemble **reached**. Pour ce faire, elle utilise la fonction **add**.
+- **add_reachable**: Prend en entrée un **état** de jeu de Solitaire, un ensemble d'états atteignables (**reachable**) et un ensemble d'états déjà atteints (**reached**). Elle calcule tous les états atteignables en un coup à partir de l'état donné et les ajoute à l'ensemble de parties atteignables, à moins qu'ils ne soient déjà présents dans l'ensemble **reached**. Pour ce faire, elle utilise la fonction **add**.
 
 - **exhaustive**: Prend en entrée un **état** de jeu de Solitaire et appelle la fonction **search_sol** (avec **best_score=-1**) pour trouver une solution à cette partie. Elle renvoie l'enchainement des coups si une solution a été trouvé.
 
@@ -246,7 +246,9 @@ Pour ce projet, nous avons testé une nouvelle méthode de travail. Nous avons u
 Cependant, on peut noter que :
 - La partie I avec le module **Game.ml** a été réalisé entièrement à deux
 - La fonction **shuffle** dans **XPatRandom.ml** a été écrite par Léopold Abignoli
-- Une grosse partie du module **Search.ml** a été réalisé par Daniel Gilardoni
+- Le module **Search.ml** a été réalisé ensemble.
+- Une grosse partie des tests et corrections de bugs pour le module Search.ml ont été fait par Daniel Gilardoni
+ainsi que plusieurs tentatives d'optimisations qui n'ont pas aboutis à cause de différents bugs rencontrés.
 
 ### Chronologie
 Nous avons commencé par créer le module **Game.ml**. Nous avons écrit dans cet ordre :
