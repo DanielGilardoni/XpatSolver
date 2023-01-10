@@ -33,6 +33,8 @@ Voici d'autres graines dont il est facile de trouver une solution :
   $ ../../src/XpatSolver.exe st.10 -check out.sol | tail -n 1
   SUCCES
 
+Les deux suivants passent pas
+
   $ timeout 30 ../../src/XpatSolver.exe bd.92 -search out.sol | tail -n 1
   SUCCES
 

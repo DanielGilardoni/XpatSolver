@@ -15,6 +15,8 @@
     List.iter (fun x -> let set = States.add x set in ()) games;
     set
   
+  (* Elle renvoie l'ensemble reachable modifié en ajoutant les états de la liste qui n'ont pas déjà été atteints
+     ou qui ne sont pas déjà dans les états atteignables *)
   let rec set_reachable reachable reached (games : Game.gameStruct list) = 
     match games with 
     | [] -> reachable
@@ -23,8 +25,7 @@
       if (States.mem game reached) || (States.mem game reachable) then set_reachable reachable reached sub_games 
       else let reachable = (States.add game reachable) in set_reachable reachable reached sub_games
   
-  (* Test si on peut deplacer toutes les cartes sur location, et si oui ajoute cet état à to_add_list
-     C'est peut-être plus couteux mais c'est plus simple je crois que les fonctions au dessus *)
+  (* Test si on peut deplacer toutes les cartes sur location, et si oui ajoute cet état à to_add_list *)
   let add game location to_add_list = 
     let rec add_aux card1_num to_add_list = 
       if card1_num >= 52 then to_add_list
@@ -40,12 +41,7 @@
   let add_reachable game reachable reached =
     let to_add_list = add game "T" [] in
     let to_add_list = add game "V" to_add_list in
-    (* On va faire une fonction qui calcule les cartes ajoutables à une colonne non vide en fct du type de jeu 
-       Puis on ajoute dans une liste de tuple de la forme (carte_attendues carte_destination) pour chaque col non vide 
-       Puis on fait match Game.rules game (fst tuple) (snd tuple); remove; move...
-       Sinon plus couteux, mais on peut utiliser add avec comme location la carte au bout de chaque colonne non vide *)
-  
-    (* Pour l'instant, on fait la methode plus couteuse pour faire un premier test *)
+
     (* On convertit le tableau en liste de liste *)
     let columns = FArray.to_list game.columns in
   
@@ -60,7 +56,7 @@
     in let reachable = set_reachable reachable reached to_add_list in reachable
   
   let heuristic score best_score =
-    (best_score - score) < 2
+    (best_score - score) < 10
 
   
   (* Recherche une solution: exhaustive si best_score=-1, non exhaustive sinon *)
