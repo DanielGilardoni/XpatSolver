@@ -10,6 +10,7 @@
   - [Découpage modulaire](#découpage-modulaire)
     - [Game](#game)
     - [XPatSolver](#xpatsolver)
+      - [treat\_game](#treat_game)
     - [XPatRandom](#xpatrandom)
     - [Search](#search)
   - [Organisation du travail](#organisation-du-travail)
@@ -17,13 +18,14 @@
 
 
 ## Identifiants
-
+---
 | Nom       |  Prénom | Identifiant | Numéro d'étudiant |  
 | ----------|---------|-------------|-------------------|
 | Abignoli  | Léopold |  @abignoli  |      22004535     |  
 | Gilardoni | Daniel  |  @gilardon  |      22008366     |
 
 ## Fonctionnalités
+---
    <!-- Donnez une description précise des fonctionnalités implémentées
    par votre rendu:  
    - sujet minimal
@@ -32,6 +34,7 @@
 
 
 ## Compilation et exécution
+---
 <!--
 Expliquer comment:
 - Compiler le projet (normalement via dune)  
@@ -47,7 +50,7 @@ Vous pouvez également utiliser le `Makefile`:
 ```bash
 make
 ```
-
+<br/><br/>
 ### Execution
 Pour lancer le projet, vous pouvez executer le fichier `run`. Il faudra alors lui passer plusieurs paramètres. Voici un exemple de la page d'aide:
 ```bash
@@ -67,6 +70,7 @@ Enfin, un deuxième exemple pour vérifier si un fichier solution est correcte:
 ```
 
 ## Découpage modulaire
+---
 <!--
 - Description de chaque module (.ml) de votre projet
 - Précisez le rôle/nécessité de chaque module ajouté au dépôt initial.
@@ -79,9 +83,45 @@ Pour notre projet, nous avons eu besoin de créer plusieurs modules. Notamment u
 
 ### XPatSolver
 ---
+Le module `XPatSolver` est le module avec la fonction **main**. C'est celui qui parse les arguments puis qui lance une **recherche** de solutions ou une **vérification** d'un fichier solution de **Solitaire**. Dans ce module, nous avons uniquement modifié la fonction **treat_game**.
+
+#### treat_game
+Cette fonction nous permet d'effectuer une **recherche** de solutions ou de **vérifier** un fichier solution.
+
+Le début de la fonction n'a pas changé. Elle calcule la **permutation** des cartes selon la **graine** puis l'affiche à l'écran. A l'aide de cette permutation, on va alors créer un objet **GameStruct** avec la fonction **Game.initGame** (voir [Game](#game))
+
+<br/><br/>
+Voici ensuite les différentes étapes de l'algorithme:
+
+**I) On effectue une recherche exhaustive ou non_exhaustive**
+- On ouvre le fichier dans lequel on va écrire la solution (**file**)
+- On appelle la fonction **exhaustive** ou **non_exhaustive** (Voir [Search](#search))
+- Si il n'y a pas de solution:
+    - **Exhaustive**: on affiche **INSOLUBLE** et code erreur 2
+    - **Non exhaustive**: il faut remplacer **INSOLUBLE** par **ECHEC** et exit 1
+- Si il y a une solution, on écrit les mouvements dans le fichier **file** (*write_moves*) et on affiche **SUCCES**
+
+**II) On vérifie si un fichier solution est correcte**
+- On ouvre le fichier (**file**)
+- On lit une ligne du fichier file avec **read_aux** (renvoie **None** si on arrive au bout du fichier)
+- On appelle la fonction **treat_game_aux** qui permet d'executer tous les coups du fichier file.
+  - On lit le prochain coup (**read_aux**)
+  - Si on est au bout du fichier
+    - On normalise la partie
+    - Si la partie est gagné (**is_won**), on affiche **SUCCES**
+    - Sinon, la partie est perdu et le fichier n'est pas une solution. On affiche **ECHEC**.
+  - Sinon, on prend la prochaine ligne
+    - On récupère la carte et l'endroit où on veut la placer.
+    - On normalise la partie
+    - On vérifie si le mouvement donné par le fichier est autorisé
+    - Si Le mouvement est *interdit*, on affiche **ECHEC**
+    - Sinon, si le mouvement est *autorisé*
+      - On retire la carte et on la place sur sa nouvelle location
+      - On appelle recursivement treat_game pour effectuer le prochain coup 
 
 ### XPatRandom
 ---
+Le module `XPatRandom` contient la fonction **shuffle** qui va nous permettre de générer une permutation de carte pour une certaine graine (**seed**). Pour écrire cette fonction, nous avons suivi toutes les instructions données au début du fichier. Voici donc, une petite description de notre code:
 
 ### Search
 ---
