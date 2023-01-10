@@ -76,7 +76,7 @@ Vous pouvez également utiliser le `Makefile`:
 ```bash
 make
 ```
-
+<br/><br/><br/><br/><br/><br/><br/>
 ### Execution
 Pour lancer le projet, vous pouvez executer le fichier `run`. Il faudra alors lui passer plusieurs paramètres. Voici un exemple de la page d'aide:
 ```bash
@@ -172,7 +172,6 @@ Cette fonction nous permet d'effectuer une **recherche** de solutions ou de **v�
 
 Le début de la fonction n'a pas changé. Elle calcule la **permutation** des cartes selon la **graine** puis l'affiche à l'écran. A l'aide de cette permutation, on va alors créer un objet **GameStruct** avec la fonction **Game.initGame** (voir [Game](#game))
 
-<br/><br/>
 Voici ensuite les différentes étapes de l'algorithme:
 
 **I) On effectue une recherche exhaustive ou non_exhaustive**
